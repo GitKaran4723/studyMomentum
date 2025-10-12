@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - Study Momentum{% endblock %}
+{% block page_title %}{% endblock %}
+{% block top_bar %}{% endblock %}
+
+{% block content %}
+<!-- Stunning Login Page -->
+<div class="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Animated Background Shapes -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    </div>
+
+    <div class="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
+        <!-- Left Side - Hero Section -->
+        <div class="hidden lg:block text-white space-y-8 px-8">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
+                <i class="material-icons text-yellow-300">auto_awesome</i>
+                <span>Daily Momentum Builder</span>
+            </div>
+
+            <!-- Main Heading -->
+            <div>
+                <h1 class="text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                    Turn exam stress into 
+                    <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">confident daily victories.</span>
+                </h1>
+                <p class="text-xl text-blue-100 leading-relaxed">
+                    Your personalised hub for tracking study hours, celebrating milestones, and staying laser-focused on your goals.
+                </p>
+            </div>
+
+            <!-- Feature List -->
+            <div class="space-y-4">
+                <div class="flex items-start gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-all">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="material-icons text-white text-2xl">schedule</i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg mb-1">Smart Study Sprints</h3>
+                        <p class="text-blue-100 text-sm">Craft weekly study plans with intelligent reminders</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-all">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="material-icons text-white text-2xl">emoji_events</i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg mb-1">Streak Badges</h3>
+                        <p class="text-blue-100 text-sm">Unlock achievements as you stay consistent</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-all">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="material-icons text-white text-2xl">insights</i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg mb-1">Progress Analytics</h3>
+                        <p class="text-blue-100 text-sm">Visualise performance across subjects and topics</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Card -->
+        <div class="w-full max-w-md mx-auto">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 lg:p-10">
+                <!-- Logo and Welcome -->
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                        <i class="material-icons text-white text-4xl">track_changes</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome back!</h2>
+                    <p class="text-gray-600">Sign in to keep your preparation streak glowing ✨</p>
+                </div>
+
+                <!-- Login Form -->
+                <form method="POST" class="space-y-5">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Username Field -->
+                    <div>
+                        <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="material-icons text-base align-middle mr-1">person</i>
+                            Username
+                        </label>
+                        {{ form.username(
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all " + ("border-red-500" if form.username.errors else ""),
+                            id="username",
+                            placeholder="Enter your username",
+                            autocomplete="username"
+                        ) }}
+                        {% if form.username.errors %}
+                            <div class="mt-2 flex items-center gap-1 text-red-600 text-sm">
+                                <i class="material-icons text-sm">error</i>
+                                <span>{{ form.username.errors[0] }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="material-icons text-base align-middle mr-1">lock</i>
+                            Password
+                        </label>
+                        {{ form.password(
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all " + ("border-red-500" if form.password.errors else ""),
+                            id="password",
+                            placeholder="Enter your password",
+                            autocomplete="current-password"
+                        ) }}
+                        {% if form.password.errors %}
+                            <div class="mt-2 flex items-center gap-1 text-red-600 text-sm">
+                                <i class="material-icons text-sm">error</i>
+                                <span>{{ form.password.errors[0] }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Remember Me & Help -->
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            {{ form.remember_me(class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500", id="remember-me") }}
+                            <span class="text-sm text-gray-700">Remember me</span>
+                        </label>
+                        <a href="#" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Need help?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full py-3.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2 group">
+                        <span>Launch Study Dashboard</span>
+                        <i class="material-icons group-hover:translate-x-1 transition-transform">arrow_forward</i>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-white text-gray-500 font-medium">Keep the spark alive 🔥</span>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center border border-blue-100">
+                        <div class="text-2xl font-bold text-blue-600 mb-1">120+</div>
+                        <div class="text-xs text-gray-600">Hours this month</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 text-center border border-orange-100">
+                        <div class="text-2xl font-bold text-orange-600 mb-1">14</div>
+                        <div class="text-xs text-gray-600">Day streak</div>
+                    </div>
+                </div>
+
+                <!-- Admin Login Info -->
+                <div class="text-center pt-6 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        Default admin login
+                    </p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg mr-2">
+                            <i class="material-icons text-sm">person</i>
+                            admin
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-lg">
+                            <i class="material-icons text-sm">lock</i>
+                            admin123
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mobile Features (shown below form on mobile) -->
+            <div class="lg:hidden mt-8 space-y-4">
+                <div class="flex items-center gap-3 text-white bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <i class="material-icons text-2xl">schedule</i>
+                    <div>
+                        <div class="font-semibold">Smart Study Plans</div>
+                        <div class="text-sm text-blue-100">Weekly sprints with reminders</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 text-white bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <i class="material-icons text-2xl">emoji_events</i>
+                    <div>
+                        <div class="font-semibold">Unlock Achievements</div>
+                        <div class="text-sm text-blue-100">Stay consistent, earn badges</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 text-white bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <i class="material-icons text-2xl">insights</i>
+                    <div>
+                        <div class="font-semibold">Track Progress</div>
+                        <div class="text-sm text-blue-100">Visualize your growth</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

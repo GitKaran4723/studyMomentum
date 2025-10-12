@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Study Momentum{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="material-icons text-white text-2xl">admin_panel_settings</i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                            <p class="text-gray-600">System overview and management</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('main.dashboard') }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                    <i class="material-icons text-base">arrow_back</i>
+                    <span>Back to App</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="material-icons text-white text-2xl">people</i>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ stats.active_users }} active
+                    </span>
+                </div>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Users</h3>
+                <p class="text-3xl font-bold text-gray-900">{{ stats.total_users }}</p>
+            </div>
+
+            <!-- Total Goals -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="material-icons text-white text-2xl">flag</i>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        Goals
+                    </span>
+                </div>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Goals</h3>
+                <p class="text-3xl font-bold text-gray-900">{{ stats.total_goals }}</p>
+            </div>
+
+            <!-- Total Subjects -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="material-icons text-white text-2xl">book</i>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {{ stats.total_topics }} topics
+                    </span>
+                </div>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Subjects</h3>
+                <p class="text-3xl font-bold text-gray-900">{{ stats.total_subjects }}</p>
+            </div>
+
+            <!-- Total Tasks -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="material-icons text-white text-2xl">assignment</i>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                        {{ stats.completed_tasks }} done
+                    </span>
+                </div>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tasks</h3>
+                <p class="text-3xl font-bold text-gray-900">{{ stats.total_tasks }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Users -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
+                <div class="px-6 py-5 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i class="material-icons text-blue-600 text-2xl">group_add</i>
+                            <h2 class="text-xl font-bold text-gray-900">Recent Users</h2>
+                        </div>
+                        <a href="{{ url_for('admin.users') }}" 
+                           class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                            View all →
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if recent_users %}
+                        <div class="space-y-4">
+                            {% for user in recent_users %}
+                            <div class="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-sm">{{ user.username[0].upper() }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-semibold text-gray-900">{{ user.username }}</p>
+                                            {% if user.is_admin %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                                                Admin
+                                            </span>
+                                            {% endif %}
+                                            {% if not user.is_active %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                                                Inactive
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-sm text-gray-500">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">
+                                        {{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="material-icons text-gray-400 text-5xl mb-3">people_outline</i>
+                            <p class="text-gray-500">No users yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Completions -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
+                <div class="px-6 py-5 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <i class="material-icons text-green-600 text-2xl">check_circle</i>
+                        <h2 class="text-xl font-bold text-gray-900">Recent Activity</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if recent_completions %}
+                        <div class="space-y-4">
+                            {% for completion in recent_completions %}
+                            <div class="flex items-start gap-3 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="material-icons text-white text-lg">done</i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <p class="font-semibold text-gray-900 truncate">
+                                            {{ completion.task.title if completion.task else 'Unknown Task' }}
+                                        </p>
+                                        {% if completion.completed %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                            Completed
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        by {{ completion.task.user.username if completion.task and completion.task.user else 'Unknown' }}
+                                    </p>
+                                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                        {% if completion.enthusiasm_score %}
+                                        <span class="flex items-center gap-1">
+                                            <i class="material-icons text-yellow-500" style="font-size: 14px;">star</i>
+                                            {{ completion.enthusiasm_score }}/10
+                                        </span>
+                                        {% endif %}
+                                        <span>{{ completion.created_at.strftime('%b %d, %H:%M') if completion.created_at else 'N/A' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="material-icons text-gray-400 text-5xl mb-3">assignment_turned_in</i>
+                            <p class="text-gray-500">No completions yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 shadow-xl">
+            <h2 class="text-2xl font-bold text-white mb-6">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="{{ url_for('admin.users') }}" 
+                   class="flex items-center gap-3 px-6 py-4 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all text-white font-semibold">
+                    <i class="material-icons text-2xl">people</i>
+                    <span>Manage Users</span>
+                </a>
+                <a href="{{ url_for('main.goals') }}" 
+                   class="flex items-center gap-3 px-6 py-4 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all text-white font-semibold">
+                    <i class="material-icons text-2xl">flag</i>
+                    <span>View Goals</span>
+                </a>
+                <a href="{{ url_for('main.subjects') }}" 
+                   class="flex items-center gap-3 px-6 py-4 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all text-white font-semibold">
+                    <i class="material-icons text-2xl">book</i>
+                    <span>View Subjects</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

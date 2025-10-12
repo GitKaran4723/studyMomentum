@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.virtualenv
+
+# Flask
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Database migrations (optional - uncomment if you want to ignore)
+# migrations/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+temp/
+tmp/
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Deployment scripts (local only)
+deploy.bat
+deploy.sh
+deploy_pythonanywhere.sh
+
+# Documentation that's not needed in production
+*.md
+!README.md
+
+# CSV files (data imports - not needed in production)
+*.csv
+
+# Database utility scripts (not needed in production)
+add_goal_id_column.py
+analyze_topic_assignment.py
+check_schema.py
+create_database.py
+delete_tasks_keep_structure.py
+fix_topic_assignments.py
+import_tasks_csv.py
+init_db.py
+link_tasks_to_goals.py
+migrate_add_goal_id.py
+migrate_goals.py
+reset_database.py
+restructure_database.py
+restructure_goals.py
+setup_goals_structure.py
+verify_goals_data.py
+verify_structure.py
+
+# Keep only essential files for deployment
+# Core application files are NOT ignored:
+# - app/
+# - config.py
+# - wsgi.py
+# - requirements.txt
+# - README.md

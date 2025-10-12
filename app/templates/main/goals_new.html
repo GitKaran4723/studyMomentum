@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Goals - Study Momentum{% endblock %}
+
+{% block content %}
+<!-- Goals Hero Section -->
+<div class="bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+                <i class="material-icons text-lg mr-2">flag</i>
+                <span>Goal Management</span>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">
+                Your Goals
+                <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Dashboard</span>
+            </h1>
+            <p class="text-lg lg:text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                Track your progress, set ambitious targets, and achieve remarkable results with focused goal management.
+            </p>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div class="text-2xl font-bold">{{ user_stats.get('total_goals', 0) }}</div>
+                    <div class="text-blue-200 text-sm">Total Goals</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div class="text-2xl font-bold">{{ user_stats.get('completed_goals', 0) }}</div>
+                    <div class="text-blue-200 text-sm">Completed</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div class="text-2xl font-bold">{{ goals|selectattr('status', 'equalto', 'active')|list|length }}</div>
+                    <div class="text-blue-200 text-sm">Active Goals</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div class="text-2xl font-bold">{{ user_stats.get('completion_rate', 0) }}%</div>
+                    <div class="text-blue-200 text-sm">Success Rate</div>
+                </div>
+            </div>
+            
+            <!-- Create Goal Button -->
+            <a href="{{ url_for('main.add_goal') }}" 
+               class="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors shadow-lg">
+                <i class="material-icons mr-2">add</i>
+                Create New Goal
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+                <select id="statusFilter" onchange="filterGoals()" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="paused">Paused</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Type Filter</label>
+                <select id="typeFilter" onchange="filterGoals()" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="all">All Types</option>
+                    <option value="learning">Learning</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="career">Career</option>
+                    <option value="personal">Personal</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button onclick="resetFilters()" 
+                        class="w-full px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="material-icons mr-2 text-lg">refresh</i>
+                    Reset Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Grid -->
+    {% if goals %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {% for goal in goals %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 
+                        {% if goal.status == 'completed' %}bg-green-50 border-green-200{% endif %}"
+                 data-status="{{ goal.status }}" data-type="{{ goal.goal_type or 'other' }}">
+                
+                <!-- Goal Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex flex-wrap gap-2">
+                        <!-- Type Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                     {% if goal.goal_type == 'learning' %}bg-blue-100 text-blue-800
+                                     {% elif goal.goal_type == 'fitness' %}bg-green-100 text-green-800
+                                     {% elif goal.goal_type == 'career' %}bg-purple-100 text-purple-800
+                                     {% elif goal.goal_type == 'personal' %}bg-pink-100 text-pink-800
+                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if goal.goal_type == 'learning' %}
+                                <i class="material-icons text-xs mr-1">school</i>
+                            {% elif goal.goal_type == 'fitness' %}
+                                <i class="material-icons text-xs mr-1">fitness_center</i>
+                            {% elif goal.goal_type == 'career' %}
+                                <i class="material-icons text-xs mr-1">work</i>
+                            {% elif goal.goal_type == 'personal' %}
+                                <i class="material-icons text-xs mr-1">person</i>
+                            {% else %}
+                                <i class="material-icons text-xs mr-1">star</i>
+                            {% endif %}
+                            {{ goal.goal_type or 'General' }}
+                        </span>
+                        
+                        <!-- Status Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                     {% if goal.status == 'active' %}bg-green-100 text-green-800
+                                     {% elif goal.status == 'completed' %}bg-blue-100 text-blue-800
+                                     {% elif goal.status == 'paused' %}bg-yellow-100 text-yellow-800
+                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ goal.status or 'Active' }}
+                        </span>
+                    </div>
+                    
+                    <!-- Actions Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" 
+                                class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                            <i class="material-icons">more_vert</i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                            <a href="{{ url_for('main.edit_goal', id=goal.id) }}" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="material-icons text-sm mr-2">edit</i>
+                                Edit Goal
+                            </a>
+                            <button onclick="deleteGoal({{ goal.id }})" 
+                                    class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <i class="material-icons text-sm mr-2">delete</i>
+                                Delete Goal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Goal Content -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ goal.goal_name }}</h3>
+                    
+                    {% if goal.description %}
+                    <p class="text-gray-600">{{ goal.description }}</p>
+                    {% endif %}
+                    
+                    <!-- Progress -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Progress</span>
+                            <span class="text-sm font-bold text-blue-600">{{ "%.0f"|format(goal.progress_percentage or 0) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
+                                 style="width: {{ goal.progress_percentage or 0 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Metrics -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="flex justify-center mb-1">
+                                <i class="material-icons text-blue-600">assignment</i>
+                            </div>
+                            <div class="font-semibold text-gray-900">{{ goal.tasks.count() }}</div>
+                            <div class="text-xs text-gray-500">Tasks</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="flex justify-center mb-1">
+                                <i class="material-icons text-green-600">check_circle</i>
+                            </div>
+                            <div class="font-semibold text-gray-900">{{ goal.completed_tasks_count or 0 }}</div>
+                            <div class="text-xs text-gray-500">Completed</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="flex justify-center mb-1">
+                                <i class="material-icons text-orange-600">schedule</i>
+                            </div>
+                            <div class="font-semibold text-gray-900">
+                                {% if goal.target_date %}
+                                    {{ goal.target_date.strftime('%b %d') }}
+                                {% else %}
+                                    No date
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-gray-500">Target</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-4 border-t border-gray-200">
+                        <a href="{{ url_for('main.dashboard') }}?goal={{ goal.id }}" 
+                           class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors">
+                            View Tasks
+                        </a>
+                        
+                        {% if goal.status != 'completed' %}
+                        <button onclick="markGoalComplete({{ goal.id }})" 
+                                class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
+                            Mark Complete
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16">
+            <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <i class="material-icons text-4xl text-gray-400">flag</i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No goals yet</h3>
+            <p class="text-gray-600 mb-6">Create your first goal to start tracking your progress!</p>
+            <a href="{{ url_for('main.add_goal') }}" 
+               class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="material-icons mr-2">add</i>
+                Create Your First Goal
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Floating Action Button -->
+{% block fab %}
+<a href="{{ url_for('main.add_goal') }}" 
+   class="fixed bottom-6 right-6 w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 z-50 group">
+    <i class="material-icons text-xl group-hover:scale-110 transition-transform">add</i>
+</a>
+{% endblock %}
+
+<!-- JavaScript for Goal Management -->
+<script>
+function deleteGoal(goalId) {
+    if (confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+        // Add loading state
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="material-icons text-sm mr-2">hourglass_empty</i>Deleting...';
+        button.disabled = true;
+
+        fetch(`/goals/${goalId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Smooth fade-out animation
+                const goalCard = button.closest('[data-status]');
+                if (goalCard) {
+                    goalCard.style.transition = 'all 0.5s ease';
+                    goalCard.style.opacity = '0';
+                    goalCard.style.transform = 'translateY(-20px) scale(0.95)';
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    location.reload();
+                }
+            } else {
+                throw new Error('Delete failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting goal. Please try again.');
+            // Restore button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+function markGoalComplete(goalId) {
+    if (confirm('Mark this goal as complete? 🎉')) {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="material-icons mr-2">hourglass_empty</i>Completing...';
+        button.disabled = true;
+
+        fetch(`/goals/${goalId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Success animation
+                const goalCard = button.closest('[data-status]');
+                if (goalCard) {
+                    goalCard.classList.add('bg-green-50', 'border-green-200');
+                    goalCard.style.transition = 'all 0.6s ease';
+                    
+                    // Show checkmark
+                    button.innerHTML = '<i class="material-icons mr-2">check_circle</i>Completed!';
+                    button.className = 'flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg';
+                    
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    location.reload();
+                }
+            } else {
+                throw new Error('Complete failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error completing goal. Please try again.');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+// Enhanced filter functionality
+function filterGoals() {
+    const status = document.getElementById('statusFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    
+    const goalCards = document.querySelectorAll('[data-status]');
+    let visibleCount = 0;
+    
+    goalCards.forEach((card, index) => {
+        const cardStatus = card.getAttribute('data-status');
+        const cardType = card.getAttribute('data-type');
+        
+        let showCard = true;
+        
+        if (status !== 'all' && cardStatus !== status) {
+            showCard = false;
+        }
+        
+        if (type !== 'all' && cardType !== type) {
+            showCard = false;
+        }
+        
+        if (showCard) {
+            visibleCount++;
+            card.style.display = 'block';
+            card.style.animation = `fadeInUp 0.4s ease ${index * 0.1}s both`;
+        } else {
+            card.style.animation = 'fadeOut 0.3s ease both';
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    });
+    
+    // Show empty state if no cards are visible
+    showEmptyFilterState(visibleCount === 0 && goalCards.length > 0);
+}
+
+function resetFilters() {
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('typeFilter').value = 'all';
+    filterGoals();
+}
+
+function showEmptyFilterState(show) {
+    let emptyState = document.querySelector('.filter-empty-state');
+    if (show && !emptyState) {
+        const container = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
+        emptyState = document.createElement('div');
+        emptyState.className = 'col-span-full filter-empty-state text-center py-16';
+        emptyState.innerHTML = `
+            <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <i class="material-icons text-4xl text-gray-400">search_off</i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No goals match your filters</h3>
+            <p class="text-gray-600 mb-6">Try adjusting your filter settings to see more goals</p>
+            <button onclick="resetFilters()" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="material-icons mr-2">refresh</i>Clear Filters
+            </button>
+        `;
+        container.appendChild(emptyState);
+    } else if (!show && emptyState) {
+        emptyState.remove();
+    }
+}
+
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-10px); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

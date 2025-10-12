@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or 'Topic' }} - Study Momentum{% endblock %}
+{% block page_title %}{{ title or 'Topic Configuration' }}{% endblock %}
+
+{% block content %}
+<div class="topic-form-page">
+    <section class="topic-form-hero">
+        <span class="hero-badge">
+            <i class="material-icons">topic</i>
+            Topic Builder
+        </span>
+        <h1>Create a focused study micro-concept.</h1>
+        <p>Define specific, actionable topics that can be mastered in focused study sessions. Topics are the building blocks of effective learning.</p>
+        <ul class="hero-list">
+            <li><i class="material-icons">book</i> Link to the appropriate subject for organization.</li>
+            <li><i class="material-icons">priority_high</i> Set default priority for task planning efficiency.</li>
+            <li><i class="material-icons">link</i> Add reference materials and documentation links.</li>
+        </ul>
+    </section>
+
+    <div class="mdc-card topic-form-card">
+        <div class="topic-form-card__header">
+            <h2>{{ title or 'Configure Topic' }}</h2>
+            <p>Build a specific study focus that can drive targeted learning sessions.</p>
+        </div>
+
+        <form method="POST" class="topic-form-card__body">
+            {{ form.hidden_tag() }}
+
+            <div class="form-field">
+                <label for="topic_name">Topic Name</label>
+                {{ form.topic_name(class="modern-input", id="topic_name", placeholder="e.g., French Revolution, Calculus Derivatives, Atomic Structure") }}
+                {% if form.topic_name.errors %}
+                    <small class="error">{{ form.topic_name.errors[0] }}</small>
+                {% else %}
+                    <small>Specific, focused concept that can be studied in 1-2 sessions.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-field">
+                <label for="subject_id">Subject</label>
+                {{ form.subject_id(class="modern-select", id="subject_id") }}
+                {% if form.subject_id.errors %}
+                    <small class="error">{{ form.subject_id.errors[0] }}</small>
+                {% else %}
+                    <small>Choose the subject this topic belongs to.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="syllabus_ref">Syllabus Reference</label>
+                    {{ form.syllabus_ref(class="modern-input", id="syllabus_ref", placeholder="e.g., Chapter 5.2, Unit 3, Section A") }}
+                    {% if form.syllabus_ref.errors %}
+                        <small class="error">{{ form.syllabus_ref.errors[0] }}</small>
+                    {% else %}
+                        <small>Optional: Reference to curriculum or textbook location.</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-field">
+                    <label for="default_priority">Default Priority</label>
+                    {{ form.default_priority(class="modern-select", id="default_priority") }}
+                    {% if form.default_priority.errors %}
+                        <small class="error">{{ form.default_priority.errors[0] }}</small>
+                    {% else %}
+                        <small>P1 = Critical, P3 = Medium, P5 = Optional review.</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="suggested_source">Suggested Sources</label>
+                {{ form.suggested_source(class="modern-textarea", id="suggested_source", rows="3", placeholder="List recommended textbooks, online resources, videos, or study materials...") }}
+                {% if form.suggested_source.errors %}
+                    <small class="error">{{ form.suggested_source.errors[0] }}</small>
+                {% else %}
+                    <small>Optional: Study materials, textbooks, or resources for this topic.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-field">
+                <label for="doc_link">Documentation Link</label>
+                {{ form.doc_link(class="modern-input", id="doc_link", placeholder="https://...") }}
+                {% if form.doc_link.errors %}
+                    <small class="error">{{ form.doc_link.errors[0] }}</small>
+                {% else %}
+                    <small>Optional: Link to detailed notes, documentation, or reference material.</small>
+                {% endif %}
+            </div>
+
+            <div class="topic-form-card__footer">
+                {{ form.submit(class="mdc-button mdc-button--raised") }}
+                <a href="{{ url_for('main.topics') }}" class="mdc-button">
+                    <span class="mdc-button__ripple"></span>
+                    <span class="mdc-button__label">Cancel</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.topic-form-page {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(24px, 5vw, 48px);
+    align-items: start;
+    padding: clamp(16px, 4vw, 32px);
+}
+
+.topic-form-hero {
+    background: linear-gradient(145deg, rgba(168, 85, 247, 0.9), rgba(147, 51, 234, 0.85));
+    color: #ffffff;
+    border-radius: 28px;
+    padding: clamp(24px, 5vw, 40px);
+    box-shadow: 0 20px 50px rgba(168, 85, 247, 0.35);
+}
+
+.topic-form-hero h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.2;
+    margin: 16px 0;
+}
+
+.topic-form-hero p {
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    opacity: 0.92;
+    margin-bottom: 20px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hero-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.hero-list li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-weight: 500;
+}
+
+.hero-list .material-icons {
+    font-size: 22px;
+}
+
+.topic-form-card {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12) !important;
+}
+
+.topic-form-card__header {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.95), rgba(245, 101, 101, 0.95));
+    color: #ffffff;
+    padding: 28px clamp(24px, 6vw, 36px);
+}
+
+.topic-form-card__header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.topic-form-card__header p {
+    margin: 12px 0 0;
+    opacity: 0.9;
+}
+
+.topic-form-card__body {
+    padding: clamp(24px, 6vw, 40px);
+    display: grid;
+    gap: 24px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-field label {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modern-input,
+.modern-select,
+.modern-textarea {
+    font: inherit;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modern-select {
+    appearance: none;
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpolyline points="6 9 12 15 18 9"/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+.modern-input:focus,
+.modern-select:focus,
+.modern-textarea:focus {
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+.modern-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-field small {
+    color: #6b7280;
+}
+
+.form-field small.error {
+    color: #d32f2f;
+}
+
+.topic-form-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-end;
+}
+
+.topic-form-card__footer .mdc-button {
+    min-width: 180px;
+    justify-content: center;
+}
+
+@media (max-width: 800px) {
+    .topic-form-page {
+        grid-template-columns: 1fr;
+    }
+
+    .topic-form-card__footer {
+        justify-content: stretch;
+    }
+
+    .topic-form-card__footer .mdc-button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

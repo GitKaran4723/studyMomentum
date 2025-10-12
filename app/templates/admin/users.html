@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Study Momentum{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="material-icons text-white text-2xl">people</i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+                            <p class="text-gray-600">Manage system users and permissions</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ url_for('admin.create_user') }}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition-all">
+                        <i class="material-icons text-base">person_add</i>
+                        <span>Create User</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                        <i class="material-icons text-base">arrow_back</i>
+                        <span>Back to Admin</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Total Users</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ users.total }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-blue-600 text-2xl">people</i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Active Users</p>
+                        <p class="text-3xl font-bold text-green-600">
+                            {{ users.items|selectattr('is_active')|list|length }}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-green-600 text-2xl">check_circle</i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Admins</p>
+                        <p class="text-3xl font-bold text-purple-600">
+                            {{ users.items|selectattr('is_admin')|list|length }}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-purple-600 text-2xl">admin_panel_settings</i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900">All Users</h2>
+                    <span class="text-sm text-gray-500">Page {{ users.page }} of {{ users.pages }}</span>
+                </div>
+            </div>
+
+            {% if users.items %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                User
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Joined
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for user in users.items %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">{{ user.username[0].upper() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ user.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if user.is_admin %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <i class="material-icons text-xs mr-1" style="font-size: 14px;">admin_panel_settings</i>
+                                    Admin
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="material-icons text-xs mr-1" style="font-size: 14px;">person</i>
+                                    User
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if user.is_active %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <span class="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                                    Active
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+                                    Inactive
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {% if user.id != current_user.id %}
+                                <div class="flex gap-2 flex-wrap">
+                                    <!-- Toggle Status -->
+                                    <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" class="inline">
+                                        <button type="submit" 
+                                                onclick="return confirm('Are you sure?')"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 {{ 'bg-red-100 text-red-700 hover:bg-red-200' if user.is_active else 'bg-green-100 text-green-700 hover:bg-green-200' }} rounded-lg text-xs font-medium transition-colors">
+                                            <i class="material-icons text-sm" style="font-size: 14px;">
+                                                {{ 'block' if user.is_active else 'check_circle' }}
+                                            </i>
+                                        </button>
+                                    </form>
+                                    
+                                    <!-- Toggle Admin -->
+                                    {% if user.is_admin %}
+                                    <form method="POST" action="{{ url_for('admin.remove_admin', user_id=user.id) }}" class="inline">
+                                        <button type="submit" 
+                                                onclick="return confirm('Remove admin privileges?')"
+                                                title="Remove Admin"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-xs font-medium transition-colors">
+                                            <i class="material-icons text-sm" style="font-size: 14px;">remove_moderator</i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('admin.make_admin', user_id=user.id) }}" class="inline">
+                                        <button type="submit" 
+                                                onclick="return confirm('Make this user an admin?')"
+                                                title="Make Admin"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-xs font-medium transition-colors">
+                                            <i class="material-icons text-sm" style="font-size: 14px;">admin_panel_settings</i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="text-xs text-gray-400 italic">Current user</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.pages > 1 %}
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing <span class="font-medium">{{ users.first }}</span> to <span class="font-medium">{{ users.last }}</span> of <span class="font-medium">{{ users.total }}</span> users
+                    </div>
+                    <div class="flex gap-2">
+                        {% if users.has_prev %}
+                        <a href="{{ url_for('admin.users', page=users.prev_num) }}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <i class="material-icons text-sm mr-1" style="font-size: 16px;">chevron_left</i>
+                            Previous
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-400 bg-gray-100 cursor-not-allowed">
+                            <i class="material-icons text-sm mr-1" style="font-size: 16px;">chevron_left</i>
+                            Previous
+                        </span>
+                        {% endif %}
+
+                        {% if users.has_next %}
+                        <a href="{{ url_for('admin.users', page=users.next_num) }}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            Next
+                            <i class="material-icons text-sm ml-1" style="font-size: 16px;">chevron_right</i>
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-400 bg-gray-100 cursor-not-allowed">
+                            Next
+                            <i class="material-icons text-sm ml-1" style="font-size: 16px;">chevron_right</i>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-12">
+                <i class="material-icons text-gray-400 text-6xl mb-4">people_outline</i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No users found</h3>
+                <p class="text-gray-500">There are no users in the system yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or 'Task Planner' }} - Study Momentum{% endblock %}
+
+{% block content %}
+<!-- Task Form Hero Section -->
+<div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+                <i class="material-icons text-lg mr-2">schedule</i>
+                <span>Micro Win Planner</span>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">
+                Design the next
+                <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">win</span>
+                in your syllabus journey.
+            </h1>
+            <p class="text-lg lg:text-xl text-blue-100 mb-6 max-w-3xl mx-auto">
+                Break the overwhelm by planning razor-sharp study capsules. Lock the topic, set the energy, and win the day before it begins.
+            </p>
+            
+            <!-- Feature List -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto text-left">
+                <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div class="flex-shrink-0">
+                        <i class="material-icons text-yellow-300">bolt</i>
+                    </div>
+                    <span class="text-blue-100">Align tasks with the highest-impact topics.</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div class="flex-shrink-0">
+                        <i class="material-icons text-green-300">today</i>
+                    </div>
+                    <span class="text-blue-100">Visualise your day with time blocks and intensity levels.</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div class="flex-shrink-0">
+                        <i class="material-icons text-orange-300">auto_graph</i>
+                    </div>
+                    <span class="text-blue-100">Stack streak points faster with every planned completion.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Form Content -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <!-- Form Header -->
+        <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ title or 'Create Study Task' }}</h2>
+            <p class="text-gray-600">Keep it specific and realistic. Tomorrow-you will thank you.</p>
+        </div>
+
+        <!-- Form Body -->
+        <form method="POST" class="p-8 space-y-8">
+            {{ form.hidden_tag() }}
+
+            <!-- Goal Selection -->
+            <div class="space-y-2">
+                <label for="goal_id" class="block text-sm font-semibold text-gray-900">Goal</label>
+                {{ form.goal_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm", id="goal_id") }}
+                {% if form.goal_id.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.goal_id.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-500 flex items-center">
+                        <i class="material-icons text-sm mr-1">info</i>
+                        Align this task with your primary mission.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Topic Selection -->
+            <div class="space-y-2">
+                <label for="topic_id" class="block text-sm font-semibold text-gray-900">Study Topic *</label>
+                {{ form.topic_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm") }}
+                {% if form.topic_id.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.topic_id.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-500 flex items-center">
+                        <i class="material-icons text-sm mr-1">lightbulb</i>
+                        Select the specific topic you'll be studying.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Notes -->
+            <div class="space-y-2">
+                <label for="notes" class="block text-sm font-semibold text-gray-900">Notes</label>
+                {{ form.notes(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm", rows="4", placeholder="Optional: Add context, specific requirements, or notes about this task...") }}
+                {% if form.notes.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.notes.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-500 flex items-center">
+                        <i class="material-icons text-sm mr-1">notes</i>
+                        Add any helpful context or specific requirements.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Date and Time Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Planned Date -->
+                <div class="space-y-2">
+                    <label for="planned_date" class="block text-sm font-semibold text-gray-900">Planned Date *</label>
+                    {{ form.planned_date(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm") }}
+                    {% if form.planned_date.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.planned_date.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">event</i>
+                            When do you plan to work on this?
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Start Time -->
+                <div class="space-y-2">
+                    <label for="planned_start" class="block text-sm font-semibold text-gray-900">Start Time (HH:MM)</label>
+                    {{ form.planned_start(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm", placeholder="e.g., 09:00") }}
+                    {% if form.planned_start.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.planned_start.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">schedule</i>
+                            Optional: Specific time to begin.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Priority and Duration Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Priority -->
+                <div class="space-y-2">
+                    <label for="priority" class="block text-sm font-semibold text-gray-900">Priority Level *</label>
+                    {{ form.priority(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm") }}
+                    {% if form.priority.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.priority.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">priority_high</i>
+                            High priority tasks get done first.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Duration -->
+                <div class="space-y-2">
+                    <label for="planned_duration_min" class="block text-sm font-semibold text-gray-900">Duration (minutes)</label>
+                    {{ form.planned_duration_min(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm", placeholder="e.g., 45") }}
+                    {% if form.planned_duration_min.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.planned_duration_min.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">timer</i>
+                            Helps with time blocking and planning.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="space-y-4">
+                <!-- SSB Warmup -->
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    {{ form.ssb_warmup(class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2") }}
+                    <span class="text-sm font-medium text-gray-900">SSB Warmup</span>
+                </label>
+
+                <!-- UGC Related -->
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    {{ form.ugc_related(class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2") }}
+                    <span class="text-sm font-medium text-gray-900">UGC Related</span>
+                </label>
+            </div>
+
+            <!-- Subject/Topic Selection (if available) -->
+            {% if form.subject_id %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="subject_id" class="block text-sm font-semibold text-gray-900">Subject</label>
+                    {{ form.subject_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm") }}
+                    {% if form.subject_id.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.subject_id.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">school</i>
+                            Categorize by subject area.
+                        </p>
+                    {% endif %}
+                </div>
+
+                {% if form.topic_id %}
+                <div class="space-y-2">
+                    <label for="topic_id" class="block text-sm font-semibold text-gray-900">Topic</label>
+                    {{ form.topic_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm") }}
+                    {% if form.topic_id.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.topic_id.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <i class="material-icons text-sm mr-1">topic</i>
+                            Specific topic within the subject.
+                        </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                <button type="submit" 
+                        class="flex-1 sm:flex-none px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center">
+                    <i class="material-icons mr-2">save</i>
+                    {{ 'Update Task' if form.data.get('id') else 'Create Task' }}
+                </button>
+                
+                <a href="{{ url_for('main.tasks') }}" 
+                   class="flex-1 sm:flex-none px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-center flex items-center justify-center">
+                    <i class="material-icons mr-2">arrow_back</i>
+                    Back to Tasks
+                </a>
+                
+                {% if form.data.get('id') %}
+                <button type="button" onclick="deleteTask()" 
+                        class="flex-1 sm:flex-none px-8 py-3 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors flex items-center justify-center">
+                    <i class="material-icons mr-2">delete</i>
+                    Delete Task
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+        <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="material-icons text-blue-600">lightbulb</i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Pro Tips for Effective Task Planning</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li class="flex items-start">
+                        <i class="material-icons text-sm text-blue-600 mr-2 mt-0.5">check_circle</i>
+                        <span><strong>Be specific:</strong> "Review calculus derivatives" beats "study math"</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="material-icons text-sm text-blue-600 mr-2 mt-0.5">check_circle</i>
+                        <span><strong>Time-box it:</strong> Estimate duration to improve planning accuracy</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="material-icons text-sm text-blue-600 mr-2 mt-0.5">check_circle</i>
+                        <span><strong>Set priorities:</strong> High-priority tasks get tackled when energy is peak</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="material-icons text-sm text-blue-600 mr-2 mt-0.5">check_circle</i>
+                        <span><strong>Link to goals:</strong> Every task should move you closer to your bigger objectives</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Enhanced Form Experience -->
+<script>
+// Auto-save form data to localStorage (optional enhancement)
+function saveFormData() {
+    const formData = {};
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        if (input.name && input.name !== 'csrf_token') {
+            formData[input.name] = input.value;
+        }
+    });
+    
+    localStorage.setItem('taskFormData', JSON.stringify(formData));
+}
+
+function loadFormData() {
+    const savedData = localStorage.getItem('taskFormData');
+    if (savedData) {
+        const formData = JSON.parse(savedData);
+        const form = document.querySelector('form');
+        
+        Object.keys(formData).forEach(key => {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input && input.value === '') {
+                input.value = formData[key];
+            }
+        });
+    }
+}
+
+function clearFormData() {
+    localStorage.removeItem('taskFormData');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadFormData();
+    
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', saveFormData);
+        input.addEventListener('change', saveFormData);
+    });
+    
+    form.addEventListener('submit', function() {
+        setTimeout(clearFormData, 1000);
+    });
+    
+    const durationInput = document.querySelector('[name="planned_duration_min"]');
+    if (durationInput) {
+        durationInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const form = document.querySelector('form');
+        if (form) {
+            form.submit();
+        }
+    }
+    
+    if (e.key === 'Escape') {
+        window.location.href = '{{ url_for("main.tasks") }}';
+    }
+});
+</script>
+{% endblock %}

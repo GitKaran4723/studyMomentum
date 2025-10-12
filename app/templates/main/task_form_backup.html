@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or 'Task Planner' }} - Study Momentum{% endblock %}
+{% block page_title %}{{ title or 'Task Planner' }}{% endblock %}
+
+{% block content %}
+<div class="task-form-page">
+    <section class="task-form-hero">
+        <span class="hero-badge">
+            <i class="material-icons">schedule</i>
+            Micro Win Planner
+        </span>
+        <h1>Design the next win in your syllabus journey.</h1>
+        <p>Break the overwhelm by planning razor-sharp study capsules. Lock the topic, set the energy, and win the day before it begins.</p>
+        <ul class="hero-list">
+            <li><i class="material-icons">bolt</i> Align tasks with the highest-impact topics.</li>
+            <li><i class="material-icons">today</i> Visualise your day with time blocks and intensity levels.</li>
+            <li><i class="material-icons">auto_graph</i> Stack streak points faster with every planned completion.</li>
+        </ul>
+    </section>
+
+    <div class="mdc-card task-form-card">
+        <div class="task-form-card__header">
+            <h2>{{ title or 'Create Study Task' }}</h2>
+            <p>Keep it specific and realistic. Tomorrow-you will thank you.</p>
+        </div>
+
+        <form method="POST" class="task-form-card__body">
+            {{ form.hidden_tag() }}
+
+            <div class="form-field">
+                <label for="goal_id">Goal</label>
+                {{ form.goal_id(class="modern-select", id="goal_id") }}
+                {% if form.goal_id.errors %}
+                    <small class="error">{{ form.goal_id.errors[0] }}</small>
+                {% else %}
+                    <small>Align this task with your primary mission.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-field">
+                <label for="topic_id">Topic</label>
+                {{ form.topic_id(class="modern-select", id="topic_id") }}
+                {% if form.topic_id.errors %}
+                    <small class="error">{{ form.topic_id.errors[0] }}</small>
+                {% else %}
+                    <small>Select the exact topic you want to conquer.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="planned_date">Planned Date</label>
+                    {{ form.planned_date(class="modern-input", id="planned_date") }}
+                    {% if form.planned_date.errors %}
+                        <small class="error">{{ form.planned_date.errors[0] }}</small>
+                    {% else %}
+                        <small>Commit to a specific day—consistency beats intensity.</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-field">
+                    <label for="planned_start">Start Time (HH:MM)</label>
+                    {{ form.planned_start(class="modern-input", id="planned_start", placeholder="07:30") }}
+                    {% if form.planned_start.errors %}
+                        <small class="error">{{ form.planned_start.errors[0] }}</small>
+                    {% else %}
+                        <small>Optional: block the exact launch time.</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="planned_duration_min">Duration (minutes)</label>
+                    {{ form.planned_duration_min(class="modern-input", id="planned_duration_min", placeholder="90") }}
+                    {% if form.planned_duration_min.errors %}
+                        <small class="error">{{ form.planned_duration_min.errors[0] }}</small>
+                    {% else %}
+                        <small>Ideal micro sessions: 45, 60, or 90 minutes.</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-field">
+                    <label for="priority">Priority Level</label>
+                    {{ form.priority(class="modern-select", id="priority") }}
+                    {% if form.priority.errors %}
+                        <small class="error">{{ form.priority.errors[0] }}</small>
+                    {% else %}
+                        <small>P1 = Mission critical, P5 = Bonus focus.</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-field form-field--inline">
+                <label class="mdc-form-field">
+                    <div class="mdc-checkbox">
+                        {{ form.ssb_warmup(class="mdc-checkbox__native-control", id="ssb_warmup") }}
+                        <div class="mdc-checkbox__background">
+                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                            </svg>
+                            <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
+                    </div>
+                    <span>SSB Warmup focus</span>
+                </label>
+
+                <label class="mdc-form-field">
+                    <div class="mdc-checkbox">
+                        {{ form.ugc_related(class="mdc-checkbox__native-control", id="ugc_related") }}
+                        <div class="mdc-checkbox__background">
+                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                            </svg>
+                            <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
+                    </div>
+                    <span>UGC Specific</span>
+                </label>
+            </div>
+
+            <div class="form-field">
+                <label for="notes">Strategic Notes</label>
+                {{ form.notes(class="modern-textarea", id="notes", rows="4", placeholder="List reference pages, question sets, or focus outcomes...") }}
+            </div>
+
+            <div class="task-form-card__footer">
+                {{ form.submit(class="mdc-button mdc-button--raised") }}
+                <a href="{{ url_for('main.tasks') }}" class="mdc-button">
+                    <span class="mdc-button__ripple"></span>
+                    <span class="mdc-button__label">Cancel</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.task-form-page {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(24px, 5vw, 48px);
+    align-items: start;
+    padding: clamp(16px, 4vw, 32px);
+}
+
+.task-form-hero {
+    background: linear-gradient(145deg, rgba(33, 150, 243, 0.9), rgba(3, 218, 198, 0.85));
+    color: #ffffff;
+    border-radius: 28px;
+    padding: clamp(24px, 5vw, 40px);
+    box-shadow: 0 20px 50px rgba(32, 76, 150, 0.35);
+}
+
+.task-form-hero h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.2;
+    margin: 16px 0;
+}
+
+.task-form-hero p {
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    opacity: 0.92;
+    margin-bottom: 20px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hero-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.hero-list li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-weight: 500;
+}
+
+.hero-list .material-icons {
+    font-size: 22px;
+}
+
+.task-form-card {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12) !important;
+}
+
+.task-form-card__header {
+    background: linear-gradient(135deg, rgba(236, 64, 122, 0.95), rgba(94, 53, 177, 0.95));
+    color: #ffffff;
+    padding: 28px clamp(24px, 6vw, 36px);
+}
+
+.task-form-card__header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.task-form-card__header p {
+    margin: 12px 0 0;
+    opacity: 0.9;
+}
+
+.task-form-card__body {
+    padding: clamp(24px, 6vw, 40px);
+    display: grid;
+    gap: 24px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-field label {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modern-input,
+.modern-select,
+.modern-textarea {
+    font: inherit;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modern-select {
+    appearance: none;
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpolyline points="6 9 12 15 18 9"/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+.modern-input:focus,
+.modern-select:focus,
+.modern-textarea:focus {
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+.modern-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-field small {
+    color: #6b7280;
+}
+
+.form-field small.error {
+    color: #d32f2f;
+}
+
+.form-field--inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.task-form-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-end;
+}
+
+.task-form-card__footer .mdc-button {
+    min-width: 180px;
+    justify-content: center;
+}
+
+@media (max-width: 800px) {
+    .task-form-page {
+        grid-template-columns: 1fr;
+    }
+
+    .task-form-card__footer {
+        justify-content: stretch;
+    }
+
+    .task-form-card__footer .mdc-button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

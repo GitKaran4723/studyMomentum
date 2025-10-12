@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or 'New Topic' }} - Study Momentum{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+                <i class="material-icons text-lg mr-2">topic</i>
+                <span>Topic Builder</span>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="text-3xl lg:text-4xl font-bold mb-4">
+                Create a Focused <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Study Topic</span>
+            </h1>
+            <p class="text-lg text-pink-100 max-w-2xl mx-auto mb-8">
+                Define specific, actionable topics that can be mastered in focused study sessions. Topics are the building blocks of effective learning.
+            </p>
+            
+            <!-- Feature List -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <i class="material-icons text-2xl mb-2">book</i>
+                    <p class="text-sm">Link to the appropriate subject</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <i class="material-icons text-2xl mb-2">priority_high</i>
+                    <p class="text-sm">Set default priority level</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <i class="material-icons text-2xl mb-2">link</i>
+                    <p class="text-sm">Add reference materials</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form Section -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Form Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-6">
+            <h2 class="text-2xl font-bold">{{ title or 'Configure Topic' }}</h2>
+            <p class="text-orange-100 mt-2">Build a specific study focus that can drive targeted learning sessions.</p>
+        </div>
+        
+        <!-- Form Body -->
+        <form method="POST" class="p-8 space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Topic Name -->
+            <div class="space-y-2">
+                <label for="topic_name" class="block text-sm font-semibold text-gray-900">
+                    Topic Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.topic_name(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors", id="topic_name", placeholder="e.g., French Revolution, Calculus Derivatives, Atomic Structure") }}
+                {% if form.topic_name.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.topic_name.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-xs mr-1">lightbulb</i>
+                        Specific, focused concept that can be studied in 1-2 sessions.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Subject -->
+            <div class="space-y-2">
+                <label for="subject_id" class="block text-sm font-semibold text-gray-900">
+                    Subject <span class="text-red-500">*</span>
+                </label>
+                {{ form.subject_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-colors", id="subject_id") }}
+                {% if form.subject_id.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.subject_id.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-xs mr-1">category</i>
+                        Choose the subject this topic belongs to.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Syllabus Reference and Default Priority Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Syllabus Reference -->
+                <div class="space-y-2">
+                    <label for="syllabus_ref" class="block text-sm font-semibold text-gray-900">
+                        Syllabus Reference
+                    </label>
+                    {{ form.syllabus_ref(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors", id="syllabus_ref", placeholder="e.g., Chapter 5.2, Unit 3, Section A") }}
+                    {% if form.syllabus_ref.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.syllabus_ref.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="material-icons text-xs mr-1">menu_book</i>
+                            Optional: Reference to curriculum or textbook location.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Default Priority -->
+                <div class="space-y-2">
+                    <label for="default_priority" class="block text-sm font-semibold text-gray-900">
+                        Default Priority
+                    </label>
+                    {{ form.default_priority(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-colors", id="default_priority") }}
+                    {% if form.default_priority.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.default_priority.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="material-icons text-xs mr-1">priority_high</i>
+                            P1 = Critical, P3 = Medium, P5 = Optional review.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Suggested Sources -->
+            <div class="space-y-2">
+                <label for="suggested_source" class="block text-sm font-semibold text-gray-900">
+                    Suggested Sources
+                </label>
+                {{ form.suggested_source(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors", id="suggested_source", rows="3", placeholder="List recommended textbooks, online resources, videos, or study materials...") }}
+                {% if form.suggested_source.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.suggested_source.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-xs mr-1">library_books</i>
+                        Optional: Study materials, textbooks, or resources for this topic.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Documentation Link -->
+            <div class="space-y-2">
+                <label for="doc_link" class="block text-sm font-semibold text-gray-900">
+                    Documentation Link
+                </label>
+                {{ form.doc_link(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors", id="doc_link", placeholder="https://...") }}
+                {% if form.doc_link.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.doc_link.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-xs mr-1">insert_link</i>
+                        Optional: Link to detailed notes, documentation, or reference material.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                {{ form.submit(class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl") }}
+                <a href="{{ url_for('main.topics') }}" 
+                   class="flex-1 inline-flex items-center justify-center px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Floating Action Button (Mobile) -->
+<a href="{{ url_for('main.topics') }}" 
+   class="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 z-50 sm:hidden group">
+    <i class="material-icons text-xl group-hover:scale-110 transition-transform">list</i>
+</a>
+{% endblock %}

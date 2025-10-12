@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}My Goals - Study Momentum{% endblock %}
+{% block page_title %}Goal Strategy Center{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4">
+    <!-- Beautiful iPhone-style Hero Section -->
+    <div class="goals-hero-section mb-4 fade-in-up">
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <span class="hero-badge-ios">
+                <i class="material-icons me-2">flag</i>
+                Goal Management
+            </span>
+        </div>
+        <h1 class="text-center text-white mb-3">Your achievement roadmap</h1>
+        <p class="text-center text-white mb-4 opacity-90">
+            Define ambitious goals and track your journey toward meaningful accomplishments. Every task becomes purposeful when aligned with your objectives.
+        </p>
+        
+        <!-- Clean Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="stat-card-ios text-center">
+                    <div class="stat-number-ios text-success">{{ user_stats.get('total_goals', 0) }}</div>
+                    <div class="stat-label-ios">Active Goals</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card-ios text-center">
+                    <div class="stat-number-ios text-primary">{{ user_stats.get('completed_goals', 0) }}</div>
+                    <div class="stat-label-ios">Completed</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card-ios text-center">
+                    <div class="stat-number-ios text-warning">{{ user_stats.get('completion_rate', 0) }}%</div>
+                    <div class="stat-label-ios">Success Rate</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('main.add_goal') }}" class="btn btn-light btn-lg d-inline-flex align-items-center px-4 py-3">
+                <i class="material-icons me-2">add</i>
+                <span class="fw-semibold">Create New Goal</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Clean iOS-style Filters -->
+    <div class="card mb-4 scale-in">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="paused">Paused</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="learning">Learning</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="career">Career</option>
+                        <option value="personal">Personal</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchFilter" placeholder="Search goals...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beautiful Goals Grid -->
+    <div class="row g-4" id="goalsGrid">
+            {% for goal in goals %}
+            <div class="col-12 col-lg-6" data-status="{{ goal.status }}" data-type="{{ goal.goal_type or 'other' }}">
+                <div class="card h-100 goal-card-ios fade-in-up">
+                    <div class="card-body">
+                        <!-- Card Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge goal-type-badge-{{ goal.goal_type or 'other' }} d-flex align-items-center">
+                                    {% if goal.goal_type == 'learning' %}
+                                        <i class="material-icons me-1" style="font-size: 16px;">school</i>
+                                    {% elif goal.goal_type == 'fitness' %}
+                                        <i class="material-icons me-1" style="font-size: 16px;">fitness_center</i>
+                                    {% elif goal.goal_type == 'career' %}
+                                        <i class="material-icons me-1" style="font-size: 16px;">work</i>
+                                    {% elif goal.goal_type == 'personal' %}
+                                        <i class="material-icons me-1" style="font-size: 16px;">person</i>
+                                    {% else %}
+                                        <i class="material-icons me-1" style="font-size: 16px;">star</i>
+                                    {% endif %}
+                                    {{ goal.goal_type or 'General' }}
+                                </span>
+                                <span class="badge status-badge-{{ goal.status or 'active' }}">
+                                    {{ goal.status or 'Active' }}
+                                </span>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="material-icons" style="font-size: 18px;">more_vert</i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('main.edit_goal', id=goal.id) }}">
+                                        <i class="material-icons me-2" style="font-size: 18px;">edit</i>Edit Goal</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteGoal({{ goal.id }})">
+                                        <i class="material-icons me-2" style="font-size: 18px;">delete</i>Delete Goal</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Goal Title & Description -->
+                        <h4 class="fw-bold mb-2 text-dark">{{ goal.goal_name }}</h4>
+                        {% if goal.description %}
+                            <p class="text-muted mb-3">{{ goal.description }}</p>
+                        {% endif %}
+
+                        <!-- Progress Section -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-semibold">Progress</span>
+                                <span class="fw-bold text-primary">{{ "%.0f"|format(goal.progress_percentage or 0) }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {{ goal.progress_percentage or 0 }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Metrics -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-4 text-center">
+                                <div class="metric-ios">
+                                    <i class="material-icons text-primary mb-1">assignment</i>
+                                    <div class="fw-bold">{{ goal.tasks.count() }}</div>
+                                    <small class="text-muted">Tasks</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="metric-ios">
+                                    <i class="material-icons text-success mb-1">check_circle</i>
+                                    <div class="fw-bold">{{ goal.completed_tasks_count or 0 }}</div>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="metric-ios">
+                                    <i class="material-icons text-warning mb-1">schedule</i>
+                                    <div class="fw-bold">
+                                        {% if goal.target_date %}
+                                            {{ goal.target_date.strftime('%b %d') }}
+                                        {% else %}
+                                            No date
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">Target</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{{ url_for('main.dashboard') }}?goal={{ goal.id }}" class="btn btn-outline-primary btn-sm flex-fill">
+                                View Tasks
+                            </a>
+                            {% if goal.status != 'completed' %}
+                            <button onclick="markGoalComplete({{ goal.id }})" class="btn btn-success btn-sm flex-fill">
+                                Mark Complete
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not goals %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="empty-state-ios">
+                    <i class="material-icons text-muted mb-3" style="font-size: 4rem;">assignment</i>
+                    <h3 class="fw-bold text-dark mb-3">No goals yet</h3>
+                    <p class="text-muted mb-4">Create your first goal to start tracking your progress!</p>
+                    <a href="{{ url_for('main.create_goal') }}" class="btn btn-primary btn-lg">
+                        <i class="material-icons me-2">add</i>
+                        Create Your First Goal
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Additional iOS theme enhancements for goals page */
+.empty-state-ios {
+    padding: 3rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced filter animations */
+.filter-card-ios .form-select:focus,
+.filter-card-ios .form-control:focus {
+    border-color: var(--ios-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--ios-primary-rgb), 0.25);
+}
+
+/* Goal card hover enhancements */
+.goal-card-ios:hover .metric-ios {
+    background: rgba(248, 249, 250, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile typography fine-tuning */
+@media (max-width: 768px) {
+    .hero-section .display-4 {
+        font-size: clamp(2rem, 6vw, 2.5rem);
+    }
+    
+    .hero-section .lead {
+        font-size: clamp(1rem, 3vw, 1.2rem);
+    }
+    
+    .filter-card-ios {
+        padding: 1rem;
+    }
+}
+
+/* Performance optimizations */
+.goal-card-ios * {
+    will-change: auto;
+}
+
+.goal-card-ios:hover {
+    will-change: transform, box-shadow;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteGoal(goalId) {
+    if (confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+        // Add loading state
+        const dropdownButton = event.target.closest('.dropdown-item');
+        if (dropdownButton) {
+            dropdownButton.innerHTML = '<i class="material-icons me-2" style="font-size: 18px;">hourglass_empty</i>Deleting...';
+            dropdownButton.style.pointerEvents = 'none';
+        }
+
+        fetch(`/goals/${goalId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Smooth fade-out animation
+                const goalCard = event.target.closest('.col-12');
+                if (goalCard) {
+                    goalCard.style.transition = 'all 0.5s ease';
+                    goalCard.style.opacity = '0';
+                    goalCard.style.transform = 'translateY(-20px) scale(0.95)';
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    location.reload();
+                }
+            } else {
+                throw new Error('Delete failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting goal. Please try again.');
+            // Restore button state
+            if (dropdownButton) {
+                dropdownButton.innerHTML = '<i class="material-icons me-2" style="font-size: 18px;">delete</i>Delete Goal';
+                dropdownButton.style.pointerEvents = 'auto';
+            }
+        });
+    }
+}
+
+function markGoalComplete(goalId) {
+    if (confirm('Mark this goal as complete? 🎉')) {
+        // Add loading state
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="material-icons me-1">hourglass_empty</i>Completing...';
+        button.disabled = true;
+
+        fetch(`/goals/${goalId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Success animation
+                const goalCard = button.closest('.goal-card-ios');
+                if (goalCard) {
+                    goalCard.style.transition = 'all 0.6s ease';
+                    goalCard.style.background = 'linear-gradient(135deg, #34C759, #30D158)';
+                    goalCard.style.color = 'white';
+                    goalCard.style.transform = 'scale(1.02)';
+                    
+                    // Show checkmark
+                    button.innerHTML = '<i class="material-icons me-1">check_circle</i>Completed!';
+                    button.className = 'btn btn-light btn-sm flex-fill';
+                    
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    location.reload();
+                }
+            } else {
+                throw new Error('Complete failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error completing goal. Please try again.');
+            // Restore button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+// Enhanced filter functionality with animations
+function filterGoals() {
+    const status = document.getElementById('statusFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    
+    const goalCards = document.querySelectorAll('[data-status]');
+    let visibleCount = 0;
+    
+    goalCards.forEach((card, index) => {
+        const cardStatus = card.getAttribute('data-status');
+        const cardType = card.getAttribute('data-type');
+        
+        let showCard = true;
+        
+        if (status !== 'all' && cardStatus !== status) {
+            showCard = false;
+        }
+        
+        if (type !== 'all' && cardType !== type) {
+            showCard = false;
+        }
+        
+        if (showCard) {
+            visibleCount++;
+            card.style.display = 'block';
+            // Staggered animation
+            card.style.animation = `fadeInUp 0.4s ease ${index * 0.1}s both`;
+        } else {
+            // Fade out animation
+            card.style.animation = 'fadeOutDown 0.3s ease both';
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    });
+    
+    // Update stats or show empty state
+    const totalGoals = goalCards.length;
+    if (visibleCount === 0 && totalGoals > 0) {
+        // Show filter empty state
+        showFilterEmptyState();
+    } else {
+        hideFilterEmptyState();
+    }
+}
+
+function showFilterEmptyState() {
+    let emptyState = document.querySelector('.filter-empty-state');
+    if (!emptyState) {
+        const container = document.querySelector('.row.g-4');
+        emptyState = document.createElement('div');
+        emptyState.className = 'col-12 filter-empty-state';
+        emptyState.innerHTML = `
+            <div class="text-center py-5">
+                <div class="empty-state-ios">
+                    <i class="material-icons text-muted mb-3" style="font-size: 3rem;">search_off</i>
+                    <h4 class="fw-bold text-dark mb-3">No goals match your filters</h4>
+                    <p class="text-muted">Try adjusting your filter settings to see more goals</p>
+                    <button class="btn btn-outline-primary" onclick="resetFilters()">
+                        <i class="material-icons me-2">refresh</i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(emptyState);
+    }
+    emptyState.style.display = 'block';
+}
+
+function hideFilterEmptyState() {
+    const emptyState = document.querySelector('.filter-empty-state');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+}
+
+function resetFilters() {
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('typeFilter').value = 'all';
+    filterGoals();
+}
+
+// CSS animations for filter transitions
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOutDown {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Goals - Study Momentum{% endblock %}
+{% block page_title %}Goals{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+    <div class="bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 text-white rounded-3xl p-6 md:p-8 lg:p-10 mb-8 shadow-2xl shadow-emerald-500/30">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">Your Learning Goals</h1>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('main.add_goal') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 font-semibold rounded-xl">
+            <i class="material-icons">add</i><span>Create New Goal</span>
+        </a>
+        {% endif %}
+    </div>
+
+    {% if goals %}
+        <div class="grid gap-6 lg:gap-8">
+            {% for goal in goals %}
+            <div class="bg-white rounded-3xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold">{{ goal.title }}</h2>
+                <div class="mt-4">
+                    <div class="flex justify-between mb-2">
+                        <span>Overall Progress</span>
+                        <span>{{ goal.progress_percentage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="h-full bg-emerald-600 rounded-full" style="width: {{ goal.progress_percentage }}%"></div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold mb-4">Subjects ({{ goal.subjects.count() }})</h3>
+                    {% for subject in goal.subjects.all() %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-2">
+                        <div class="flex-1">
+                            <h4 class="font-semibold">{{ subject.name }}</h4>
+                            <span class="text-xs text-gray-500">{{ subject.total_tasks }} tasks - {{ subject.completion_percentage }}% complete</span>
+                        </div>
+                        <a href="{{ url_for('main.topics', subject_id=subject.subject_id) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                            View Topics
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-2xl font-bold mb-3">No goals yet</h3>
+            <a href="{{ url_for('main.add_goal') }}" class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-xl">
+                <i class="material-icons mr-2">add</i>Create First Goal
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

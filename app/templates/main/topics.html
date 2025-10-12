@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Topics - Study Momentum{% endblock %}
+{% block page_title %}Topic Library{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-br from-purple-600 via-pink-600 to-rose-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 mb-8 shadow-2xl shadow-purple-500/30">
+        <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full font-semibold text-xs md:text-sm tracking-wider uppercase mb-4">
+            <i class="material-icons text-lg">topic</i>
+            Micro-Concepts
+        </span>
+        
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">
+            Break subjects into focused, actionable study topics.
+        </h1>
+        
+        <p class="text-base md:text-lg opacity-95 mb-6 leading-relaxed max-w-3xl">
+            Transform broad subjects into specific, manageable topics. Each topic becomes a building block for targeted study sessions.
+        </p>
+        
+        <div class="flex flex-wrap gap-3">
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full font-medium">
+                <i class="material-icons text-lg">list_alt</i>
+                <span>{{ topics.total }} topics total</span>
+            </span>
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full font-medium">
+                <i class="material-icons text-lg">book</i>
+                <span>{{ subjects|length }} subjects</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200 mb-6">
+        <form method="GET" class="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div class="flex-1 w-full sm:w-auto min-w-0 sm:min-w-[250px]">
+                <label class="block text-sm font-semibold text-gray-900 mb-2">Filter by Subject</label>
+                <select name="subject_id" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 outline-none transition-all duration-200 text-gray-900 bg-white appearance-none cursor-pointer"
+                        style="background-image: url('data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%236b7280&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;%3E%3Cpolyline points=&quot;6 9 12 15 18 9&quot;/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px;"
+                        onchange="this.form.submit()">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.subject_id }}" {% if selected_subject == subject.subject_id %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <a href="{{ url_for('main.new_topic') }}" 
+               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-200 w-full sm:w-auto">
+                <i class="material-icons">add</i>
+                <span>Add Topic</span>
+            </a>
+        </form>
+    </div>
+
+    <!-- Section Header -->
+    <div class="mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+            {% if selected_subject %}
+                {{ subjects|selectattr('subject_id', 'equalto', selected_subject)|first|attr('name') }} Topics
+            {% else %}
+                All Topics
+            {% endif %}
+        </h2>
+    </div>
+
+    {% if topics.items %}
+        <!-- Topics Grid -->
+        <div class="grid gap-4 md:gap-6 mb-8">
+            {% for topic in topics.items %}
+            <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-slate-300 transition-all duration-200 border border-gray-100">
+                <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-start gap-3 mb-2">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30">
+                                <i class="material-icons text-white text-2xl">topic</i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-xl font-bold text-gray-900 mb-1">
+                                    {{ topic.topic_name }}
+                                </h3>
+                                <div class="text-sm text-gray-600">
+                                    <span class="font-medium text-purple-700">{{ topic.subject.name }}</span>
+                                    {% if topic.syllabus_ref %}
+                                        <span class="text-gray-400 mx-1">•</span>
+                                        <span>{{ topic.syllabus_ref }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if topic.suggested_source %}
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-semibold">Source:</span> {{ topic.suggested_source }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold {% if topic.default_priority == 1 %}bg-red-100 text-red-700{% elif topic.default_priority == 2 %}bg-orange-100 text-orange-700{% elif topic.default_priority == 3 %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                            P{{ topic.default_priority }}
+                        </span>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('main.edit_topic', id=topic.topic_id) }}" 
+                           class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600 hover:text-purple-600 transition-colors duration-200">
+                            <i class="material-icons">edit</i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg font-medium text-sm">
+                        <i class="material-icons text-base">assignment</i>
+                        <span>{{ topic.tasks.count() }} tasks</span>
+                    </div>
+                    {% if topic.doc_link %}
+                    <a href="{{ topic.doc_link }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center gap-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm">
+                        <i class="material-icons text-base">link</i>
+                        <span>Documentation</span>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.new_task') }}?topic_id={{ topic.topic_id }}" 
+                       class="inline-flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 text-sm shadow-md shadow-purple-500/20">
+                        <i class="material-icons text-base">add_task</i>
+                        <span>Create Task</span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if topics.pages > 1 %}
+        <div class="flex justify-center items-center gap-4">
+            {% if topics.has_prev %}
+            <a href="{{ url_for('main.topics', page=topics.prev_num, subject_id=selected_subject) }}" 
+               class="inline-flex items-center gap-1 px-4 py-2 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors duration-200">
+                <i class="material-icons text-lg">chevron_left</i>
+                <span>Previous</span>
+            </a>
+            {% endif %}
+            
+            <span class="text-gray-600 font-medium">
+                Page {{ topics.page }} of {{ topics.pages }}
+            </span>
+            
+            {% if topics.has_next %}
+            <a href="{{ url_for('main.topics', page=topics.next_num, subject_id=selected_subject) }}" 
+               class="inline-flex items-center gap-1 px-4 py-2 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors duration-200">
+                <span>Next</span>
+                <i class="material-icons text-lg">chevron_right</i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-2xl p-12 text-center shadow-lg shadow-slate-200">
+            <div class="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="material-icons text-purple-500 text-5xl">topic</i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-3">
+                {% if selected_subject %}
+                    No topics in this subject
+                {% else %}
+                    No topics created yet
+                {% endif %}
+            </h3>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                {% if selected_subject %}
+                    Add your first topic to this subject to start building focused study sessions.
+                {% else %}
+                    Create topics within subjects to organize your study material into manageable chunks.
+                {% endif %}
+            </p>
+            <a href="{{ url_for('main.new_topic') }}" 
+               class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-200">
+                <i class="material-icons">add</i>
+                <span>Create First Topic</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

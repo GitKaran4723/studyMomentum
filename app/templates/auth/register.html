@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Register User - Goal Tracker{% endblock %}
+{% block page_title %}Register New User{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="mdc-card register-card">
+        <div class="mdc-card-wrapper__text-section p-16">
+            <h2 class="mdc-typography--headline5 text-center mb-16">Register New User</h2>
+            <p class="mdc-typography--body2 text-center mb-16">Only administrators can create new user accounts</p>
+
+            <form method="POST" class="register-form">
+                {{ form.hidden_tag() }}
+                
+                <div class="mdc-text-field mdc-text-field--outlined full-width">
+                    {{ form.username(class="mdc-text-field__input", id="username") }}
+                    <div class="mdc-notched-outline">
+                        <div class="mdc-notched-outline__leading"></div>
+                        <div class="mdc-notched-outline__notch">
+                            <label for="username" class="mdc-floating-label">Username</label>
+                        </div>
+                        <div class="mdc-notched-outline__trailing"></div>
+                    </div>
+                </div>
+                {% if form.username.errors %}
+                    <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg">
+                        {{ form.username.errors[0] }}
+                    </div>
+                {% endif %}
+
+                <div class="mdc-text-field mdc-text-field--outlined full-width">
+                    {{ form.email(class="mdc-text-field__input", id="email") }}
+                    <div class="mdc-notched-outline">
+                        <div class="mdc-notched-outline__leading"></div>
+                        <div class="mdc-notched-outline__notch">
+                            <label for="email" class="mdc-floating-label">Email</label>
+                        </div>
+                        <div class="mdc-notched-outline__trailing"></div>
+                    </div>
+                </div>
+                {% if form.email.errors %}
+                    <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg">
+                        {{ form.email.errors[0] }}
+                    </div>
+                {% endif %}
+
+                <div class="mdc-text-field mdc-text-field--outlined full-width">
+                    {{ form.password(class="mdc-text-field__input", id="password") }}
+                    <div class="mdc-notched-outline">
+                        <div class="mdc-notched-outline__leading"></div>
+                        <div class="mdc-notched-outline__notch">
+                            <label for="password" class="mdc-floating-label">Password</label>
+                        </div>
+                        <div class="mdc-notched-outline__trailing"></div>
+                    </div>
+                </div>
+                {% if form.password.errors %}
+                    <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg">
+                        {{ form.password.errors[0] }}
+                    </div>
+                {% endif %}
+
+                <div class="mdc-text-field mdc-text-field--outlined full-width">
+                    {{ form.password2(class="mdc-text-field__input", id="password2") }}
+                    <div class="mdc-notched-outline">
+                        <div class="mdc-notched-outline__leading"></div>
+                        <div class="mdc-notched-outline__notch">
+                            <label for="password2" class="mdc-floating-label">Confirm Password</label>
+                        </div>
+                        <div class="mdc-notched-outline__trailing"></div>
+                    </div>
+                </div>
+                {% if form.password2.errors %}
+                    <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg">
+                        {{ form.password2.errors[0] }}
+                    </div>
+                {% endif %}
+
+                <div class="form-actions">
+                    {{ form.submit(class="mdc-button mdc-button--raised full-width") }}
+                    <a href="{{ url_for('admin.users') }}" class="mdc-button full-width">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Cancel</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+    padding: 16px;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 500px;
+}
+
+.register-form .mdc-text-field {
+    margin-bottom: 16px;
+}
+
+.form-actions {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.full-width {
+    width: 100%;
+}
+</style>
+{% endblock %}
