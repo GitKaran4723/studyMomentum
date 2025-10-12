@@ -63,7 +63,7 @@
 
             <!-- Goal Selection -->
             <div class="space-y-2">
-                <label for="goal_id" class="block text-sm font-semibold text-gray-900">Goal</label>
+                <label for="goal_id" class="block text-sm font-semibold text-gray-900">Goal *</label>
                 {{ form.goal_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm", id="goal_id") }}
                 {% if form.goal_id.errors %}
                     <p class="text-sm text-red-600 flex items-center">
@@ -91,6 +91,23 @@
                     <p class="text-sm text-gray-500 flex items-center">
                         <i class="material-icons text-sm mr-1">lightbulb</i>
                         Select the specific topic you'll be studying.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Task Name -->
+            <div class="space-y-2">
+                <label for="task_name" class="block text-sm font-semibold text-gray-900">Task Name *</label>
+                {{ form.task_name(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm", placeholder="e.g., Review Chapter 3 - Derivatives") }}
+                {% if form.task_name.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.task_name.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-500 flex items-center">
+                        <i class="material-icons text-sm mr-1">edit</i>
+                        Give this task a descriptive name so you know exactly what to do.
                     </p>
                 {% endif %}
             </div>

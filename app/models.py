@@ -219,6 +219,7 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.goal_id'))
     topic_id = db.Column(db.Integer, db.ForeignKey('topics.topic_id'), nullable=False)
+    task_name = db.Column(db.String(200), nullable=True)  # Descriptive name for the task
     planned_date = db.Column(db.Date, nullable=False)
     planned_start = db.Column(db.String(10))  # HH:MM format
     planned_duration_min = db.Column(db.Integer)
@@ -285,8 +286,38 @@ class Task(db.Model):
         task_score = w_priority * (0.5 * e_norm + 0.5 * q) * c
         return round(task_score, 3)
     
+    @property
+    def due_date(self):
+        """Alias for planned_date for template compatibility"""
+        return self.planned_date
+    
+    @property
+    def description(self):
+        """Alias for notes for template compatibility"""
+        return self.notes
+    
+    @property
+    def estimated_duration(self):
+        """Alias for planned_duration_min for template compatibility"""
+        return self.planned_duration_min
+    
+    @property
+    def completed_at(self):
+        """Get completion date if task is completed"""
+        completion = self.latest_completion
+        if completion and completion.completed:
+            return completion.created_at
+        return None
+    
+    @property
+    def display_name(self):
+        """Get display name: task_name if set, otherwise topic name"""
+        if self.task_name:
+            return self.task_name
+        return self.topic.topic_name if self.topic else 'Untitled Task'
+    
     def __repr__(self):
-        return f'<Task {self.task_id}: {self.topic.topic_name}>'
+        return f'<Task {self.task_id}: {self.display_name}>'
 
 class Session(db.Model):
     """Study sessions (optional): multiple sessions can belong to a task"""

@@ -43,6 +43,7 @@ class GoalForm(FlaskForm):
 class TaskForm(FlaskForm):
     goal_id = SelectField('Goal', coerce=int, validators=[DataRequired(message='Select a goal')])
     topic_id = SelectField('Topic', coerce=int, validators=[DataRequired()])
+    task_name = StringField('Task Name', validators=[DataRequired(), Length(max=200)])
     planned_date = DateField('Planned Date', validators=[DataRequired()], default=date.today)
     planned_start = StringField('Start Time (HH:MM)', validators=[Optional()])
     planned_duration_min = IntegerField('Duration (minutes)', validators=[Optional(), NumberRange(min=1)])

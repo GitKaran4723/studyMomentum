@@ -30,11 +30,17 @@
     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-8 border border-blue-200">
         <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">{{ task.topic.topic_name }}</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">{{ task.task_name or task.display_name }}</h2>
                 <div class="flex flex-wrap gap-3">
                     <span class="inline-flex items-center px-3 py-1 bg-white rounded-lg text-sm font-medium text-gray-700 shadow-sm">
+                        <i class="material-icons text-sm mr-1">topic</i>
+                        {{ task.topic.topic_name }}
+                    </span>
+                    
+                    <span class="inline-flex items-center px-3 py-1 bg-white rounded-lg text-sm font-medium text-gray-700 shadow-sm">
                         <i class="material-icons text-sm mr-1">book</i>
-                        {{ task.topic.subject.name }}</span></div>
+                        {{ task.topic.subject.name }}
+                    </span>
 
                     
                     <span class="inline-flex items-center px-3 py-1 bg-white rounded-lg text-sm font-medium text-gray-700 shadow-sm">

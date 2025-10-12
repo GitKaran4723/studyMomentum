@@ -29,6 +29,11 @@
                     <i class="material-icons mr-2">add</i>
                     New Task
                 </a>
+                <a href="{{ url_for('main.tasks', date='today') }}" 
+                   class="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors">
+                    <i class="material-icons mr-2">today</i>
+                    Today's Tasks
+                </a>
                 <button onclick="showQuickFilters()" 
                         class="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors">
                     <i class="material-icons mr-2">filter_list</i>
@@ -130,12 +135,22 @@
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-semibold text-gray-900 mb-2 
                                        {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">
-                                {{ task.task_name }}
+                                {{ task.task_name or task.display_name }}
                             </h3>
                             
-                            {% if task.description %}
+                            <!-- Topic Badge -->
+                            {% if task.topic %}
+                            <div class="mb-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    <i class="material-icons text-xs mr-1">topic</i>
+                                    {{ task.topic.topic_name }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if task.notes %}
                             <p class="text-gray-600 mb-3 {% if task.status == 'completed' %}text-gray-400{% endif %}">
-                                {{ task.description }}
+                                {{ task.notes }}
                             </p>
                             {% endif %}
                             
@@ -182,29 +197,31 @@
                             
                             <!-- Task Details -->
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                                {% if task.due_date %}
+                                {% if task.planned_date %}
                                 <div class="flex items-center">
-                                    <i class="material-icons text-sm mr-1 text-orange-600">schedule</i>
-                                    <span>{{ task.due_date.strftime('%b %d, %Y') }}</span>
+                                    <i class="material-icons text-sm mr-1 text-orange-600">event</i>
+                                    <span>{{ task.planned_date.strftime('%b %d, %Y') }}</span>
                                 </div>
                                 {% endif %}
                                 
-                                {% if task.estimated_duration %}
+                                {% if task.planned_start %}
                                 <div class="flex items-center">
-                                    <i class="material-icons text-sm mr-1 text-blue-600">timer</i>
-                                    <span>{{ task.estimated_duration }} min</span>
+                                    <i class="material-icons text-sm mr-1 text-blue-600">schedule</i>
+                                    <span>{{ task.planned_start }}</span>
                                 </div>
                                 {% endif %}
                                 
+                                {% if task.planned_duration_min %}
                                 <div class="flex items-center">
-                                    <i class="material-icons text-sm mr-1 text-green-600">calendar_today</i>
-                                    <span>{{ task.created_at.strftime('%b %d') }}</span>
+                                    <i class="material-icons text-sm mr-1 text-purple-600">timer</i>
+                                    <span>{{ task.planned_duration_min }} min</span>
                                 </div>
+                                {% endif %}
                                 
                                 {% if task.status == 'completed' and task.completed_at %}
                                 <div class="flex items-center">
-                                    <i class="material-icons text-sm mr-1 text-purple-600">done</i>
-                                    <span>{{ task.completed_at.strftime('%b %d') }}</span>
+                                    <i class="material-icons text-sm mr-1 text-green-600">done</i>
+                                    <span>Done: {{ task.completed_at.strftime('%b %d') }}</span>
                                 </div>
                                 {% endif %}
                             </div>

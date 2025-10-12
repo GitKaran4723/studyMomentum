@@ -325,29 +325,48 @@ def tasks():
     page = request.args.get('page', 1, type=int)
     date_filter = request.args.get('date')
     status_filter = request.args.get('status')
+    priority_filter = request.args.get('priority')
+    goal_filter = request.args.get('goal_id', type=int)
     
     query = Task.query.filter_by(user_id=current_user.id)
     
+    # Date filtering
     if date_filter:
-        try:
-            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            query = query.filter(Task.planned_date == filter_date)
-        except ValueError:
-            pass
+        if date_filter == 'today':
+            query = query.filter(Task.planned_date == date.today())
+        else:
+            try:
+                filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+                query = query.filter(Task.planned_date == filter_date)
+            except ValueError:
+                pass
     
+    # Status filtering
     if status_filter == 'completed':
         query = query.join(Completion).filter(Completion.completed == True)
+    elif status_filter == 'in_progress':
+        query = query.join(Completion).filter(Completion.completed == False)
     elif status_filter == 'pending':
         query = query.outerjoin(Completion).filter(
-            or_(Completion.completed == False, Completion.completed.is_(None))
+            or_(Completion.completion_id.is_(None))
         )
     
-    tasks = query.order_by(Task.planned_date.desc()).paginate(
+    # Priority filtering
+    if priority_filter:
+        query = query.filter(Task.priority == int(priority_filter))
+    
+    # Goal filtering
+    if goal_filter:
+        query = query.filter(Task.goal_id == goal_filter)
+    
+    tasks = query.order_by(Task.planned_date.desc(), Task.priority.asc()).paginate(
         page=page, per_page=current_app.config['ITEMS_PER_PAGE'],
         error_out=False
     )
     
-    return render_template('main/tasks.html', tasks=tasks)
+    goals = Goal.query.filter_by(user_id=current_user.id).all()
+    
+    return render_template('main/tasks.html', tasks=tasks, goals=goals)
 
 @bp.route('/tasks/new', methods=['GET', 'POST'])
 @login_required
@@ -360,36 +379,37 @@ def new_task():
         return redirect(url_for('main.new_goal'))
 
     form.goal_id.choices = [(0, '— Select goal —')] + [(g.goal_id, g.goal_name or g.title) for g in user_goals]
-    form.topic_id.choices = [(t.topic_id, f"{t.subject.name}: {t.topic_name}") 
+    form.topic_id.choices = [(0, '— Select topic —')] + [(t.topic_id, f"{t.subject.name}: {t.topic_name}") 
                             for t in Topic.query.join(Subject).all()]
     
+    # Pre-select topic and goal if coming from topic page
+    topic_id = request.args.get('topic_id', type=int)
+    if topic_id and request.method == 'GET':
+        topic = Topic.query.get(topic_id)
+        if topic:
+            form.topic_id.data = topic_id
+            # Auto-select goal based on topic's subject
+            if topic.subject and topic.subject.goal_id:
+                form.goal_id.data = topic.subject.goal_id
+    
     if form.validate_on_submit():
-        # Check for duplicate task
-        existing = Task.query.filter_by(
+        task = Task(
             user_id=current_user.id,
+            goal_id=form.goal_id.data,
             topic_id=form.topic_id.data,
-            planned_date=form.planned_date.data
-        ).first()
-        
-        if existing:
-            flash('Task for this topic on this date already exists', 'error')
-        else:
-            task = Task(
-                user_id=current_user.id,
-                goal_id=form.goal_id.data,
-                topic_id=form.topic_id.data,
-                planned_date=form.planned_date.data,
-                planned_start=form.planned_start.data,
-                planned_duration_min=form.planned_duration_min.data,
-                priority=form.priority.data,
-                ssb_warmup=form.ssb_warmup.data,
-                ugc_related=form.ugc_related.data,
-                notes=form.notes.data
-            )
-            db.session.add(task)
-            db.session.commit()
-            flash('Task created successfully!', 'success')
-            return redirect(url_for('main.tasks'))
+            task_name=form.task_name.data,
+            planned_date=form.planned_date.data,
+            planned_start=form.planned_start.data,
+            planned_duration_min=form.planned_duration_min.data,
+            priority=form.priority.data,
+            ssb_warmup=form.ssb_warmup.data,
+            ugc_related=form.ugc_related.data,
+            notes=form.notes.data
+        )
+        db.session.add(task)
+        db.session.commit()
+        flash('Task created successfully!', 'success')
+        return redirect(url_for('main.tasks'))
     
     return render_template('main/task_form.html', form=form, title='New Task')
 
@@ -415,6 +435,42 @@ def complete_task(id):
         return redirect(url_for('main.tasks'))
     
     return render_template('main/completion_form.html', form=form, task=task, title='Complete Task')
+
+@bp.route('/tasks/<int:id>/toggle', methods=['POST'])
+@login_required
+def toggle_task(id):
+    """Toggle task completion status"""
+    task = Task.query.filter_by(task_id=id, user_id=current_user.id).first_or_404()
+    
+    # Get or create completion
+    completion = task.latest_completion
+    if completion:
+        # Toggle existing completion
+        completion.completed = not completion.completed
+    else:
+        # Create new completion
+        data = request.get_json()
+        completed = data.get('completed', True) if data else True
+        completion = Completion(
+            task_id=task.task_id,
+            completed=completed,
+            enthusiasm_score=0,
+            mcq_percent=0,
+            mains_score=0
+        )
+        db.session.add(completion)
+    
+    db.session.commit()
+    return jsonify({'success': True, 'completed': completion.completed})
+
+@bp.route('/tasks/<int:id>', methods=['DELETE'])
+@login_required
+def delete_task(id):
+    """Delete a task"""
+    task = Task.query.filter_by(task_id=id, user_id=current_user.id).first_or_404()
+    db.session.delete(task)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @bp.route('/analytics')
 @login_required
