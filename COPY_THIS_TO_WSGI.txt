@@ -1,0 +1,26 @@
+# COPY THIS TO PYTHONANYWHERE WSGI FILE NOW!
+
+```python
+import sys
+import os
+
+project_home = '/home/jaihanuman/studyMomentum'
+
+if project_home not in sys.path:
+    sys.path.insert(0, project_home)
+
+os.environ['FLASK_ENV'] = 'production'
+
+from wsgi import application
+```
+
+## Where to paste this:
+1. Go to: https://www.pythonanywhere.com/user/jaihanuman/webapps/
+2. Click on: WSGI configuration file
+3. DELETE everything
+4. PASTE the code above
+5. SAVE (Ctrl+S)
+6. Click RELOAD button
+7. Visit: https://jaihanuman.pythonanywhere.com
+
+## ✅ That's it! Your app will work!
