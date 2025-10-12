@@ -161,14 +161,20 @@ echo ""
 echo "Click on the WSGI configuration file link in Web tab."
 echo "DELETE EVERYTHING and replace with this:"
 echo ""
-echo "┌─────────────────────────────────────────────────────────────┐"
-echo "│ import sys                                                  │"
-echo "│ path = '/home/$(whoami)/studyMomentum'                  │"
-echo "│ if path not in sys.path:                                   │"
-echo "│     sys.path.insert(0, path)                               │"
-echo "│                                                             │"
-echo "│ from wsgi import application                               │"
-echo "└─────────────────────────────────────────────────────────────┘"
+cat << 'WSGI_CONTENT'
+┌─────────────────────────────────────────────────────────────┐
+│ import sys                                                  │
+│ import os                                                   │
+│                                                             │
+│ path = '/home/$(whoami)/studyMomentum'                  │
+│ if path not in sys.path:                                   │
+│     sys.path.insert(0, path)                               │
+│                                                             │
+│ os.environ['FLASK_ENV'] = 'production'                     │
+│                                                             │
+│ from wsgi import application                               │
+└─────────────────────────────────────────────────────────────┘
+WSGI_CONTENT
 echo ""
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
