@@ -280,10 +280,30 @@ def edit_goal(id):
     form = GoalForm(obj=goal)
     
     if form.validate_on_submit():
-        form.populate_obj(goal)
+        goal.title = form.goal_name.data  # Update title field
+        goal.goal_name = form.goal_name.data
+        goal.description = form.description.data
+        goal.goal_type = form.goal_type.data
+        goal.target_date = form.target_date.data
+        goal.target_value = form.target_value.data
+        goal.unit = form.unit.data
+        goal.success_criteria = form.success_criteria.data
+        goal.reward = form.reward.data
+        goal.status = form.status.data
         db.session.commit()
         flash('Goal updated successfully!', 'success')
         return redirect(url_for('main.goals'))
+    elif request.method == 'GET':
+        # Pre-fill form with current values
+        form.goal_name.data = goal.goal_name or goal.title
+        form.description.data = goal.description
+        form.goal_type.data = goal.goal_type
+        form.target_date.data = goal.target_date
+        form.target_value.data = goal.target_value
+        form.unit.data = goal.unit
+        form.success_criteria.data = goal.success_criteria
+        form.reward.data = goal.reward
+        form.status.data = goal.status
     
     return render_template('main/goal_form.html', form=form, title='Edit Goal')
 
@@ -301,6 +321,7 @@ def new_goal():
     if form.validate_on_submit():
         goal = Goal(
             user_id=current_user.id,
+            title=form.goal_name.data,  # Set title (required field)
             goal_name=form.goal_name.data,
             description=form.description.data,
             goal_type=form.goal_type.data,
