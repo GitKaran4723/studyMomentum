@@ -10,7 +10,8 @@ from app.models import Subject, Topic, Goal, GoalTopic, Task, Completion, Sessio
 def serialize_subject(subject):
     """Serialize subject to JSON"""
     return {
-        'id': subject.subject_id,
+        'subject_id': subject.subject_id,
+        'goal_id': subject.goal_id,
         'name': subject.name,
         'short_code': subject.short_code,
         'description': subject.description,
@@ -20,10 +21,10 @@ def serialize_subject(subject):
 def serialize_topic(topic):
     """Serialize topic to JSON"""
     return {
-        'id': topic.topic_id,
-        'name': topic.topic_name,
+        'topic_id': topic.topic_id,
+        'topic_name': topic.topic_name,
         'subject_id': topic.subject_id,
-        'subject_name': topic.subject.name,
+        'subject_name': topic.subject.name if topic.subject else None,
         'syllabus_ref': topic.syllabus_ref,
         'default_priority': topic.default_priority,
         'suggested_source': topic.suggested_source,

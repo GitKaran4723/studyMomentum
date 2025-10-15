@@ -58,41 +58,91 @@
         </div>
 
         <!-- Form Body -->
-        <form method="POST" class="p-8 space-y-8">
+        <form method="POST" class="p-8 space-y-8" id="taskForm">
             {{ form.hidden_tag() }}
 
-            <!-- Goal Selection -->
-            <div class="space-y-2">
-                <label for="goal_id" class="block text-sm font-semibold text-gray-900">Goal *</label>
-                {{ form.goal_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm", id="goal_id") }}
-                {% if form.goal_id.errors %}
-                    <p class="text-sm text-red-600 flex items-center">
-                        <i class="material-icons text-sm mr-1">error</i>
-                        {{ form.goal_id.errors[0] }}
-                    </p>
-                {% else %}
-                    <p class="text-sm text-gray-500 flex items-center">
-                        <i class="material-icons text-sm mr-1">info</i>
-                        Align this task with your primary mission.
-                    </p>
-                {% endif %}
-            </div>
+            <!-- Cascading Selection: Goal → Subject → Topic -->
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border-2 border-purple-200 space-y-6">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i class="material-icons text-purple-600">filter_list</i>
+                    <h3 class="text-lg font-semibold text-gray-900">Smart Selection</h3>
+                    <span class="text-sm text-gray-600">(Goal → Subject → Topic)</span>
+                </div>
 
-            <!-- Topic Selection -->
-            <div class="space-y-2">
-                <label for="topic_id" class="block text-sm font-semibold text-gray-900">Study Topic *</label>
-                {{ form.topic_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm") }}
-                {% if form.topic_id.errors %}
-                    <p class="text-sm text-red-600 flex items-center">
-                        <i class="material-icons text-sm mr-1">error</i>
-                        {{ form.topic_id.errors[0] }}
+                <!-- Goal Selection -->
+                <div class="space-y-2">
+                    <label for="goal_id" class="block text-sm font-semibold text-gray-900">
+                        <span class="inline-flex items-center">
+                            <span class="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">1</span>
+                            Select Goal *
+                        </span>
+                    </label>
+                    {{ form.goal_id(class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm", id="goal_id", **{'x-on:change': 'filterSubjects($event.target.value)'}) }}
+                    {% if form.goal_id.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.goal_id.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">info</i>
+                            Choose the primary goal this task aligns with
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Subject Selection (Filtered by Goal) -->
+                <div class="space-y-2" id="subject-section">
+                    <label for="subject_id" class="block text-sm font-semibold text-gray-900">
+                        <span class="inline-flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">2</span>
+                            Select Subject *
+                        </span>
+                    </label>
+                    <select name="subject_id" id="subject_id" 
+                            class="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                            onchange="filterTopics(this.value)"
+                            required>
+                        <option value="">— First select a goal above —</option>
+                    </select>
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">school</i>
+                        Subjects will appear after selecting a goal
                     </p>
-                {% else %}
-                    <p class="text-sm text-gray-500 flex items-center">
-                        <i class="material-icons text-sm mr-1">lightbulb</i>
-                        Select the specific topic you'll be studying.
-                    </p>
-                {% endif %}
+                </div>
+
+                <!-- Topic Selection (Filtered by Subject) -->
+                <div class="space-y-2">
+                    <label for="topic_id" class="block text-sm font-semibold text-gray-900">
+                        <span class="inline-flex items-center">
+                            <span class="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">3</span>
+                            Select Topic *
+                        </span>
+                    </label>
+                    {{ form.topic_id(class="w-full px-4 py-3 border-2 border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm", id="topic_id") }}
+                    {% if form.topic_id.errors %}
+                        <p class="text-sm text-red-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">error</i>
+                            {{ form.topic_id.errors[0] }}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="material-icons text-sm mr-1">topic</i>
+                            Topics will appear after selecting a subject
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Visual Flow Indicator -->
+                <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 pt-2">
+                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">Goal</span>
+                    <i class="material-icons text-sm">arrow_forward</i>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">Subject</span>
+                    <i class="material-icons text-sm">arrow_forward</i>
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">Topic</span>
+                    <i class="material-icons text-sm">arrow_forward</i>
+                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">Task</span>
+                </div>
             </div>
 
             <!-- Task Name -->
@@ -317,6 +367,98 @@
 
 <!-- JavaScript for Enhanced Form Experience -->
 <script>
+// Data structure for cascading dropdowns
+let allSubjects = [];
+let allTopics = [];
+
+// Fetch data when page loads
+async function loadHierarchyData() {
+    try {
+        // Fetch subjects
+        const subjectsResponse = await fetch('/api/subjects');
+        allSubjects = await subjectsResponse.json();
+        
+        // Fetch topics
+        const topicsResponse = await fetch('/api/topics');
+        allTopics = await topicsResponse.json();
+        
+        console.log('Loaded subjects:', allSubjects.length);
+        console.log('Loaded topics:', allTopics.length);
+        
+        // If goal is pre-selected (coming from topic page), trigger filtering
+        const goalSelect = document.getElementById('goal_id');
+        if (goalSelect && goalSelect.value && goalSelect.value !== '0') {
+            filterSubjects(goalSelect.value);
+        }
+    } catch (error) {
+        console.error('Error loading hierarchy data:', error);
+    }
+}
+
+// Filter subjects based on selected goal
+function filterSubjects(goalId) {
+    const subjectSelect = document.getElementById('subject_id');
+    const topicSelect = document.getElementById('topic_id');
+    
+    // Clear existing options
+    subjectSelect.innerHTML = '<option value="">— Select a subject —</option>';
+    topicSelect.innerHTML = '<option value="">— First select a subject —</option>';
+    
+    if (!goalId || goalId === '0') {
+        subjectSelect.innerHTML = '<option value="">— First select a goal above —</option>';
+        return;
+    }
+    
+    // Filter subjects that belong to the selected goal
+    const filteredSubjects = allSubjects.filter(s => s.goal_id == goalId);
+    
+    if (filteredSubjects.length === 0) {
+        subjectSelect.innerHTML = '<option value="">— No subjects for this goal —</option>';
+        return;
+    }
+    
+    // Populate subject dropdown
+    filteredSubjects.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject.subject_id;
+        option.textContent = subject.name;
+        subjectSelect.appendChild(option);
+    });
+    
+    console.log(`Filtered ${filteredSubjects.length} subjects for goal ${goalId}`);
+}
+
+// Filter topics based on selected subject
+function filterTopics(subjectId) {
+    const topicSelect = document.getElementById('topic_id');
+    
+    // Clear existing options
+    topicSelect.innerHTML = '<option value="">— Select a topic —</option>';
+    
+    if (!subjectId || subjectId === '0' || subjectId === '') {
+        topicSelect.innerHTML = '<option value="">— First select a subject —</option>';
+        return;
+    }
+    
+    // Filter topics that belong to the selected subject
+    const filteredTopics = allTopics.filter(t => t.subject_id == subjectId);
+    
+    if (filteredTopics.length === 0) {
+        topicSelect.innerHTML = '<option value="">— No topics for this subject —</option>';
+        return;
+    }
+    
+    // Populate topic dropdown
+    filteredTopics.forEach(topic => {
+        const option = document.createElement('option');
+        option.value = topic.topic_id;
+        option.textContent = topic.topic_name;
+        topicSelect.appendChild(option);
+    });
+    
+    console.log(`Filtered ${filteredTopics.length} topics for subject ${subjectId}`);
+}
+
 // Auto-save form data to localStorage (optional enhancement)
 function saveFormData() {
     const formData = {};
@@ -352,6 +494,9 @@ function clearFormData() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load hierarchy data first
+    loadHierarchyData();
+    
     loadFormData();
     
     const form = document.querySelector('form');
@@ -370,6 +515,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (durationInput) {
         durationInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+    
+    // Add goal change listener
+    const goalSelect = document.getElementById('goal_id');
+    if (goalSelect) {
+        goalSelect.addEventListener('change', function() {
+            filterSubjects(this.value);
         });
     }
 });
