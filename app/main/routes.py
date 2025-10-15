@@ -14,6 +14,7 @@ from app.models import Subject, Topic, Goal, GoalTopic, Task, Completion, Sessio
 def dashboard():
     """Main dashboard"""
     today = date.today()
+    yesterday = today - timedelta(days=1)
     week_start = today - timedelta(days=today.weekday())
     month_start = today.replace(day=1)
     
@@ -22,6 +23,26 @@ def dashboard():
         Task.user_id == current_user.id,
         Task.planned_date == today
     ).all()
+    
+    # Yesterday's pending tasks (overdue)
+    yesterday_pending = Task.query.outerjoin(Completion).filter(
+        Task.user_id == current_user.id,
+        Task.planned_date == yesterday,
+        or_(
+            Completion.completion_id.is_(None),
+            Completion.completed == False
+        )
+    ).all()
+    
+    # All overdue tasks (before today, not completed)
+    overdue_tasks = Task.query.outerjoin(Completion).filter(
+        Task.user_id == current_user.id,
+        Task.planned_date < today,
+        or_(
+            Completion.completion_id.is_(None),
+            Completion.completed == False
+        )
+    ).order_by(Task.planned_date.desc()).all()
     
     # Week's tasks
     week_tasks = Task.query.filter(
@@ -58,6 +79,9 @@ def dashboard():
                          week_score=round(week_score, 2),
                          active_goals=active_goals,
                          recent_completions=recent_completions,
+                         yesterday_pending=yesterday_pending,
+                         overdue_tasks=overdue_tasks,
+                         overdue_count=len(overdue_tasks),
                          now=datetime.now)
 
 @bp.route('/subjects')

@@ -91,6 +91,73 @@
 
 <!-- Analytics Dashboard -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Overdue/Pending Alert Section -->
+    {% if overdue_count > 0 %}
+    <div class="mb-8 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-lg p-6 border-2 border-orange-400">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <i class="material-icons text-2xl">warning</i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2">⚠️ {{ overdue_count }} Pending Task{{ 's' if overdue_count != 1 else '' }}</h3>
+                    <p class="text-orange-100 mb-4">You have unfinished tasks from previous days. Let's clear the backlog!</p>
+                    
+                    <!-- Collapsible Overdue Tasks -->
+                    <div x-data="{ showOverdue: false }" class="mt-4">
+                        <button @click="showOverdue = !showOverdue" 
+                                class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg font-medium transition-colors">
+                            <span x-text="showOverdue ? 'Hide Pending Tasks' : 'Show Pending Tasks'"></span>
+                            <i class="material-icons ml-2 transition-transform duration-200" :class="showOverdue ? 'rotate-180' : ''">expand_more</i>
+                        </button>
+                        
+                        <div x-show="showOverdue" x-collapse class="mt-4 space-y-3">
+                            {% for task in overdue_tasks %}
+                            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="px-2 py-1 bg-red-500/30 rounded text-xs font-medium">
+                                                {{ task.planned_date.strftime('%b %d') }}
+                                            </span>
+                                            <span class="px-2 py-1 bg-white/20 rounded text-xs font-medium">
+                                                P{{ task.priority }}
+                                            </span>
+                                        </div>
+                                        <h4 class="font-semibold mb-1">{{ task.task_name or task.topic.topic_name }}</h4>
+                                        <p class="text-sm text-orange-100">{{ task.topic.subject.name }} • {{ task.goal.goal_name or task.goal.title if task.goal else 'No Goal' }}</p>
+                                    </div>
+                                    <a href="{{ url_for('main.complete_task', id=task.task_id) }}" 
+                                       class="ml-4 px-4 py-2 bg-white text-orange-600 rounded-lg font-medium hover:bg-orange-50 transition-colors flex-shrink-0">
+                                        Complete Now
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="mb-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center space-x-4">
+            <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <i class="material-icons text-2xl">check_circle</i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1">🎉 You're up to the mark, buddy!</h3>
+                <p class="text-green-100">No pending tasks. Good going! Keep up the excellent momentum!</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Analytics Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Progress Overview Card -->
@@ -186,6 +253,130 @@
             <h2 class="text-3xl font-bold text-gray-900 mb-2">Today's Focus</h2>
             <p class="text-lg text-gray-600">Complete these tasks to maintain your momentum</p>
         </div>
+
+        <!-- Task Statistics Dropdown -->
+        {% if today_tasks %}
+        <div x-data="{ showStats: false }" class="mb-6">
+            <div class="max-w-4xl mx-auto">
+                <button @click="showStats = !showStats" 
+                        class="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="material-icons text-blue-600">analytics</i>
+                        </div>
+                        <span class="text-lg font-semibold text-gray-900">Task Statistics</span>
+                    </div>
+                    <i class="material-icons text-gray-400 transition-transform duration-200" :class="showStats ? 'rotate-180' : ''">expand_more</i>
+                </button>
+                
+                <div x-show="showStats" x-collapse class="mt-4 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Total Tasks -->
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                                <i class="material-icons text-blue-600 text-xl">assignment</i>
+                            </div>
+                            <div class="text-3xl font-bold text-gray-900 mb-1">{{ today_total }}</div>
+                            <div class="text-sm font-medium text-gray-600">Total Tasks</div>
+                        </div>
+                        
+                        <!-- Completed Tasks -->
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
+                                <i class="material-icons text-green-600 text-xl">check_circle</i>
+                            </div>
+                            <div class="text-3xl font-bold text-gray-900 mb-1">{{ today_completed }}</div>
+                            <div class="text-sm font-medium text-gray-600">Completed</div>
+                        </div>
+                        
+                        <!-- Pending Tasks -->
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="w-12 h-12 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3">
+                                <i class="material-icons text-orange-600 text-xl">schedule</i>
+                            </div>
+                            <div class="text-3xl font-bold text-gray-900 mb-1">{{ today_total - today_completed }}</div>
+                            <div class="text-sm font-medium text-gray-600">Pending</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Stats -->
+                    <div class="mt-6 pt-6 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">
+                                {% set high_priority = today_tasks|selectattr('priority', 'le', 2)|list|length %}
+                                {{ high_priority }}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">High Priority</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">
+                                {% if today_total > 0 %}
+                                    {{ "%.0f"|format((today_completed / today_total) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">Completion Rate</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-600">{{ "%.1f"|format(today_score) }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Quality Score</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">
+                                {% set total_duration = namespace(value=0) %}
+                                {% for task in today_tasks %}
+                                    {% if task.planned_duration_min %}
+                                        {% set total_duration.value = total_duration.value + task.planned_duration_min %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ (total_duration.value // 60)|int }}h {{ total_duration.value % 60 }}m
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">Planned Time</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Priority Breakdown -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">Priority Breakdown</h4>
+                        <div class="space-y-2">
+                            {% for priority in [1, 2, 3, 4, 5] %}
+                            {% set p_tasks = today_tasks|selectattr('priority', 'eq', priority)|list %}
+                            {% set p_completed = p_tasks|selectattr('is_completed')|list|length %}
+                            {% if p_tasks|length > 0 %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 rounded text-xs font-medium
+                                                 {% if priority == 1 %}bg-red-100 text-red-800
+                                                 {% elif priority == 2 %}bg-orange-100 text-orange-800
+                                                 {% elif priority == 3 %}bg-yellow-100 text-yellow-800
+                                                 {% elif priority == 4 %}bg-blue-100 text-blue-800
+                                                 {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        P{{ priority }}
+                                    </span>
+                                    <span class="text-sm text-gray-600">{{ p_completed }}/{{ p_tasks|length }} completed</span>
+                                </div>
+                                <div class="flex-1 mx-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="{% if priority == 1 %}bg-red-500{% elif priority == 2 %}bg-orange-500{% elif priority == 3 %}bg-yellow-500{% elif priority == 4 %}bg-blue-500{% else %}bg-gray-500{% endif %} h-2 rounded-full"
+                                             style="width: {{ (p_completed / (p_tasks|length)) * 100 if p_tasks|length > 0 else 0 }}%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">
+                                    {{ "%.0f"|format((p_completed / (p_tasks|length)) * 100) if p_tasks|length > 0 else 0 }}%
+                                </span>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         {% if today_tasks %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
