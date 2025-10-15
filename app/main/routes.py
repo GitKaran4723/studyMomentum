@@ -1,5 +1,6 @@
 """Main application routes"""
 from datetime import datetime, date, timedelta
+import pytz
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import func, and_, or_, case
@@ -43,6 +44,8 @@ def dashboard():
             Completion.completed == False
         )
     ).order_by(Task.planned_date.desc()).all()
+
+
     
     # Week's tasks
     week_tasks = Task.query.filter(
@@ -69,6 +72,10 @@ def dashboard():
         Task.user_id == current_user.id
     ).order_by(Completion.created_at.desc()).limit(5).all()
     
+    # Get current IST time
+    ist = pytz.timezone('Asia/Kolkata')
+    current_ist_time = datetime.now(ist)
+    
     return render_template('main/dashboard.html', 
                          today_tasks=today_tasks,
                          today_completed=today_completed,
@@ -82,6 +89,7 @@ def dashboard():
                          yesterday_pending=yesterday_pending,
                          overdue_tasks=overdue_tasks,
                          overdue_count=len(overdue_tasks),
+                         current_ist_time=current_ist_time,
                          now=datetime.now)
 
 @bp.route('/subjects')

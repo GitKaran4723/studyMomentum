@@ -91,6 +91,155 @@
 
 <!-- Analytics Dashboard -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Live Time Progress Bar (3 AM - 9 PM IST) - FUTURISTIC DESIGN -->
+    <div class="mb-8" x-data="timeProgress()" x-init="startClock()">
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+            <!-- Animated Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900"></div>
+            
+            <!-- Animated Particles Effect -->
+            <div class="absolute inset-0 opacity-30">
+                <div class="absolute w-full h-full animate-pulse bg-gradient-to-r from-transparent via-white to-transparent"></div>
+            </div>
+            
+            <!-- Glowing Border -->
+            <div class="absolute inset-0 border-2 border-purple-400 rounded-2xl animate-pulse"></div>
+            
+            <!-- Content Container -->
+            <div class="relative z-10 p-4 sm:p-6 lg:p-8">
+                <!-- Top Section: Header & Clock -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <!-- Title Section -->
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-red-500 flex items-center justify-center shadow-lg">
+                                <i class="material-icons text-3xl text-white animate-pulse">schedule</i>
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 tracking-tight">
+                                ⏰ Time is Ticking Away!
+                            </h3>
+                            <p class="text-purple-200 text-xs sm:text-sm font-medium" x-text="motivationalMessage">Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Digital Clock -->
+                    <div class="bg-black/40 backdrop-blur-xl rounded-xl px-4 sm:px-6 py-3 border border-purple-400/30 shadow-xl">
+                        <div class="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 tracking-wider font-mono" 
+                             x-text="currentTime">00:00:00</div>
+                        <div class="text-xs sm:text-sm text-purple-300 text-center mt-1 font-semibold">IST</div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar Section -->
+                <div class="mb-6">
+                    <!-- Progress Header -->
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs sm:text-sm font-bold text-green-300">3:00 AM</span>
+                            <div class="hidden sm:block w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-black/40 px-3 sm:px-4 py-1.5 rounded-full border border-purple-400/30">
+                            <i class="material-icons text-yellow-400 text-sm sm:text-base animate-pulse">trending_up</i>
+                            <span class="text-lg sm:text-xl lg:text-2xl font-bold text-white" x-text="timePercentage + '%'">0%</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="hidden sm:block w-2 h-2 rounded-full bg-red-400 animate-pulse"></div>
+                            <span class="text-xs sm:text-sm font-bold text-red-300">9:00 PM</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Futuristic Progress Bar -->
+                    <div class="relative">
+                        <!-- Outer Glow -->
+                        <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-50"></div>
+                        
+                        <!-- Progress Bar Container -->
+                        <div class="relative w-full h-8 sm:h-10 bg-black/60 backdrop-blur-sm rounded-full border-2 border-purple-400/40 overflow-hidden shadow-inner">
+                            <!-- Progress Fill with Gradient -->
+                            <div class="h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                                 :style="`width: ${timePercentage}%; background: linear-gradient(90deg, #10b981 0%, #3b82f6 30%, #f59e0b 60%, #ef4444 100%);`">
+                                <!-- Shimmer Effect -->
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                                
+                                <!-- Fire Icon at Progress End -->
+                                <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                    <i class="material-icons text-white text-xl sm:text-2xl drop-shadow-lg animate-bounce">local_fire_department</i>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Markers -->
+                            <div class="absolute inset-0 flex justify-around items-center px-2">
+                                <div class="w-px h-4 bg-white/20"></div>
+                                <div class="w-px h-4 bg-white/20"></div>
+                                <div class="w-px h-4 bg-white/20"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Time Markers Below -->
+                        <div class="flex justify-around mt-2 text-xs text-purple-300 font-medium">
+                            <span class="opacity-60">6 AM</span>
+                            <span class="opacity-80">12 PM</span>
+                            <span class="opacity-60">6 PM</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Urgency Alert Box -->
+                <div class="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-md rounded-xl p-4 sm:p-5 border border-orange-400/30 mb-5 shadow-lg">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                                <i class="material-icons text-white text-xl sm:text-2xl animate-bounce">bolt</i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-1.5" x-text="urgencyTitle">Loading...</h4>
+                            <p class="text-xs sm:text-sm text-purple-100 leading-relaxed" x-text="urgencyMessage">Loading message...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Grid - Futuristic Cards -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+                    <!-- Hours Left -->
+                    <div class="group relative">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition"></div>
+                        <div class="relative bg-black/60 backdrop-blur-xl rounded-xl p-3 sm:p-4 lg:p-5 border border-green-400/30 text-center hover:scale-105 transition-transform">
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-green-300 to-emerald-400 mb-1" 
+                                 x-text="hoursLeft">0</div>
+                            <div class="text-xs sm:text-sm text-green-300 font-semibold">Hours Left</div>
+                            <i class="material-icons text-green-400/30 text-3xl sm:text-4xl absolute top-1 right-1 opacity-20">schedule</i>
+                        </div>
+                    </div>
+                    
+                    <!-- Minutes Left -->
+                    <div class="group relative">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition"></div>
+                        <div class="relative bg-black/60 backdrop-blur-xl rounded-xl p-3 sm:p-4 lg:p-5 border border-blue-400/30 text-center hover:scale-105 transition-transform">
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-300 to-cyan-400 mb-1" 
+                                 x-text="minutesLeft">0</div>
+                            <div class="text-xs sm:text-sm text-blue-300 font-semibold">Minutes Left</div>
+                            <i class="material-icons text-blue-400/30 text-3xl sm:text-4xl absolute top-1 right-1 opacity-20">av_timer</i>
+                        </div>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="group relative">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition"></div>
+                        <div class="relative bg-black/60 backdrop-blur-xl rounded-xl p-3 sm:p-4 lg:p-5 border border-purple-400/30 text-center hover:scale-105 transition-transform">
+                            <div class="text-3xl sm:text-4xl lg:text-5xl mb-1" x-text="timeStatus">🔥</div>
+                            <div class="text-xs sm:text-sm text-purple-300 font-semibold">Status</div>
+                            <i class="material-icons text-purple-400/30 text-3xl sm:text-4xl absolute top-1 right-1 opacity-20">star</i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Overdue/Pending Alert Section -->
     {% if overdue_count > 0 %}
     <div class="mb-8 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-lg p-6 border-2 border-orange-400">
@@ -227,21 +376,33 @@
             </div>
         </div>
         
-        <!-- Weekly Summary Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-6">Weekly Summary</h3>
-            <div class="grid grid-cols-1 gap-4">
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                    <div class="text-2xl font-bold text-gray-900">{{ week_total }}</div>
-                    <div class="text-sm text-gray-500">Tasks Planned</div>
+        <!-- Weekly Summary Card - Collapsible -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200" x-data="{ showWeekly: false }">
+            <button @click="showWeekly = !showWeekly" 
+                    class="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-purple-600">date_range</i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Weekly Summary</h3>
                 </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                    <div class="text-2xl font-bold text-gray-900">{{ week_completed }}</div>
-                    <div class="text-sm text-gray-500">Completed</div>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                    <div class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(week_score) }}</div>
-                    <div class="text-sm text-gray-500">Avg Score</div>
+                <i class="material-icons text-gray-400 transition-transform duration-200" :class="showWeekly ? 'rotate-180' : ''">expand_more</i>
+            </button>
+            
+            <div x-show="showWeekly" x-collapse class="px-6 pb-6">
+                <div class="grid grid-cols-1 gap-4 pt-2">
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900">{{ week_total }}</div>
+                        <div class="text-sm text-gray-500">Tasks Planned</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900">{{ week_completed }}</div>
+                        <div class="text-sm text-gray-500">Completed</div>
+                    </div>
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(week_score) }}</div>
+                        <div class="text-sm text-gray-500">Avg Score</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -624,6 +785,133 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Define timeProgress function BEFORE Alpine.js loads
+window.timeProgress = function() {
+    return {
+        currentTime: '00:00:00',
+        timePercentage: 0,
+        hoursLeft: '0',
+        minutesLeft: '0',
+        timeStatus: '🔥',
+        urgencyTitle: '',
+        urgencyMessage: '',
+        motivationalMessage: '',
+        
+        startClock() {
+            this.updateTime();
+            // Update every second
+            setInterval(() => {
+                this.updateTime();
+            }, 1000);
+        },
+        
+        updateTime() {
+            // 10 Motivational messages that rotate
+            const motivationalQuotes = [
+                'Every second counts - make them all meaningful! 💪',
+                'Time waits for no one. Act NOW! ⚡',
+                'Your future self will thank you for what you do TODAY! 🌟',
+                'Champions are made when nobody is watching! 🏆',
+                'The best time to start was yesterday. The next best time is NOW! 🚀',
+                'Success is the sum of small efforts repeated day in and day out! 💯',
+                'Don\'t watch the clock; do what it does. Keep going! ⏰',
+                'The harder you work, the luckier you get! 🍀',
+                'Dream big, work hard, stay focused! 🎯',
+                'Every accomplishment starts with the decision to try! ✨'
+            ];
+            
+            // Get current time - Using local time which should be IST on your system
+            const now = new Date();
+            
+            // Get IST time properly
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // Format time display
+            this.currentTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Calculate progress (3 AM = 3:00, 9 PM = 21:00)
+            const startHour = 3;
+            const endHour = 21;
+            const totalMinutes = (endHour - startHour) * 60; // 18 hours = 1080 minutes
+            
+            // Calculate current minutes from 3 AM
+            let currentMinutes = 0;
+            if (hours >= startHour && hours < endHour) {
+                currentMinutes = (hours - startHour) * 60 + minutes;
+            } else if (hours >= endHour) {
+                currentMinutes = totalMinutes; // After 9 PM
+            }
+            // Before 3 AM, currentMinutes stays 0
+            
+            // Calculate percentage
+            this.timePercentage = Math.min(Math.round((currentMinutes / totalMinutes) * 100), 100);
+            
+            // Calculate time left
+            const minutesRemaining = Math.max(0, totalMinutes - currentMinutes);
+            this.hoursLeft = Math.floor(minutesRemaining / 60);
+            this.minutesLeft = minutesRemaining % 60;
+            
+            // Rotate motivational message every 10 seconds
+            const messageIndex = Math.floor((seconds / 10)) % motivationalQuotes.length;
+            
+            // Set rotating motivational message
+            this.motivationalMessage = motivationalQuotes[messageIndex];
+            
+            // Set status and messages based on time
+            if (hours < startHour) {
+                // Before 3 AM - Early bird
+                this.timeStatus = '🌙';
+                this.urgencyTitle = '🌙 Night Owl Mode!';
+                this.urgencyMessage = 'The world is asleep, but winners are preparing for greatness. Your day starts in ' + (startHour - hours) + ' hours!';
+            } else if (hours >= startHour && hours < 6) {
+                // 3 AM - 6 AM - Golden hours
+                this.timeStatus = '🌅';
+                this.urgencyTitle = '🌅 GOLDEN MORNING HOURS!';
+                this.urgencyMessage = 'The most productive hours! Your mind is fresh, distractions are zero. This is YOUR time to shine!';
+            } else if (hours >= 6 && hours < 9) {
+                // 6 AM - 9 AM - Peak time
+                this.timeStatus = '⚡';
+                this.urgencyTitle = '⚡ PEAK PRODUCTIVITY TIME!';
+                this.urgencyMessage = 'Your brain is at its sharpest! Attack the hardest tasks NOW. This energy won\'t last forever!';
+            } else if (hours >= 9 && hours < 12) {
+                // 9 AM - 12 PM - Morning power
+                this.timeStatus = '🔥';
+                this.urgencyTitle = '🔥 MORNING POWER HOURS!';
+                this.urgencyMessage = 'The morning is still yours! Push harder, focus deeper. Every task you complete now is a victory!';
+            } else if (hours >= 12 && hours < 15) {
+                // 12 PM - 3 PM - Afternoon grind
+                this.timeStatus = '💪';
+                this.urgencyTitle = '💪 AFTERNOON GRIND TIME!';
+                this.urgencyMessage = 'Half the day is gone! Don\'t slow down now. Keep the momentum. Your future self will thank you!';
+            } else if (hours >= 15 && hours < 18) {
+                // 3 PM - 6 PM - Critical hours
+                this.timeStatus = '⚠️';
+                this.urgencyTitle = '⚠️ CRITICAL HOURS - PUSH HARDER!';
+                this.urgencyMessage = 'Time is slipping away FAST! The clock is ticking. What you do NOW defines your tomorrow!';
+            } else if (hours >= 18 && hours < 21) {
+                // 6 PM - 9 PM - Final sprint
+                this.timeStatus = '🚨';
+                this.urgencyTitle = '🚨 FINAL SPRINT - LAST CHANCE!';
+                this.urgencyMessage = 'THESE ARE YOUR LAST HOURS! Give it EVERYTHING you\'ve got! No regrets, only results!';
+            } else {
+                // After 9 PM
+                this.timeStatus = '🌃';
+                this.urgencyTitle = '🌃 Day Ended - Reflect & Rest';
+                this.urgencyMessage = 'The productive day is over. Did you give your best? Rest well, tomorrow is another chance to dominate!';
+            }
+        }
+    }
+};
+
+// Log to confirm script loaded
+console.log('timeProgress function loaded successfully');
+</script>
 {% endblock %}
 
 {% block fab %}

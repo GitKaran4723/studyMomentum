@@ -244,8 +244,14 @@
     <!-- Floating Action Button -->
     {% block fab %}{% endblock %}
 
+    <!-- Page-specific scripts (must load BEFORE Alpine.js) -->
+    {% block scripts %}{% endblock %}
+
+    <!-- Alpine.js Plugins -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    
     <!-- Alpine.js for interactive components -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     {% block extra_js %}{% endblock %}
     
