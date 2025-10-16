@@ -72,6 +72,25 @@
                 {% endif %}
             </div>
 
+            <!-- Goal -->
+            <div class="space-y-2">
+                <label for="goal_id" class="block text-sm font-semibold text-gray-900">
+                    Goal <span class="text-red-500">*</span>
+                </label>
+                {{ form.goal_id(class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-colors", id="goal_id") }}
+                {% if form.goal_id.errors %}
+                    <p class="text-sm text-red-600 flex items-center">
+                        <i class="material-icons text-sm mr-1">error</i>
+                        {{ form.goal_id.errors[0] }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-gray-600 flex items-center">
+                        <i class="material-icons text-xs mr-1">flag</i>
+                        Select the goal first to filter relevant subjects.
+                    </p>
+                {% endif %}
+            </div>
+
             <!-- Subject -->
             <div class="space-y-2">
                 <label for="subject_id" class="block text-sm font-semibold text-gray-900">
@@ -86,7 +105,7 @@
                 {% else %}
                     <p class="text-sm text-gray-600 flex items-center">
                         <i class="material-icons text-xs mr-1">category</i>
-                        Choose the subject this topic belongs to.
+                        <span id="subject-help-text">Choose the subject this topic belongs to.</span>
                     </p>
                 {% endif %}
             </div>
@@ -187,4 +206,76 @@
    class="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 z-50 sm:hidden group">
     <i class="material-icons text-xl group-hover:scale-110 transition-transform">list</i>
 </a>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const goalSelect = document.getElementById('goal_id');
+    const subjectSelect = document.getElementById('subject_id');
+    const helpText = document.getElementById('subject-help-text');
+    
+    // Store all subjects for filtering
+    const allSubjects = Array.from(subjectSelect.options).map(opt => ({
+        value: opt.value,
+        text: opt.text
+    }));
+    
+    // Function to update subjects based on selected goal
+    function updateSubjects() {
+        const goalId = goalSelect.value;
+        
+        if (!goalId) {
+            // No goal selected - show all subjects
+            subjectSelect.disabled = true;
+            subjectSelect.innerHTML = '<option value="">Select a goal first</option>';
+            helpText.textContent = 'Please select a goal first to see relevant subjects.';
+            return;
+        }
+        
+        // Show loading state
+        subjectSelect.disabled = true;
+        subjectSelect.innerHTML = '<option value="">Loading subjects...</option>';
+        helpText.textContent = 'Loading subjects for selected goal...';
+        
+        // Fetch subjects for selected goal
+        fetch(`/api/subjects-by-goal/${goalId}`)
+            .then(response => response.json())
+            .then(subjects => {
+                subjectSelect.disabled = false;
+                
+                if (subjects.length === 0) {
+                    subjectSelect.innerHTML = '<option value="">No subjects available for this goal</option>';
+                    helpText.textContent = 'No subjects found. Create subjects for this goal first.';
+                } else {
+                    // Populate subjects
+                    subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+                    subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject.id;
+                        option.textContent = subject.name;
+                        subjectSelect.appendChild(option);
+                    });
+                    helpText.textContent = `${subjects.length} subject(s) available for the selected goal.`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching subjects:', error);
+                subjectSelect.disabled = false;
+                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+                helpText.textContent = 'Error loading subjects. Please try again.';
+            });
+    }
+    
+    // Listen for goal changes
+    goalSelect.addEventListener('change', updateSubjects);
+    
+    // Initialize on page load
+    if (goalSelect.value) {
+        updateSubjects();
+    } else {
+        subjectSelect.disabled = true;
+        subjectSelect.innerHTML = '<option value="">Select a goal first</option>';
+        helpText.textContent = 'Please select a goal first to see relevant subjects.';
+    }
+});
+</script>
 {% endblock %}

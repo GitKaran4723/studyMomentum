@@ -13,6 +13,7 @@ class SubjectForm(FlaskForm):
 
 class TopicForm(FlaskForm):
     topic_name = StringField('Topic Name', validators=[DataRequired(), Length(max=200)])
+    goal_id = SelectField('Goal', coerce=int, validators=[DataRequired()])
     subject_id = SelectField('Subject', coerce=int, validators=[DataRequired()])
     syllabus_ref = StringField('Syllabus Reference', validators=[Length(max=200)])
     default_priority = SelectField('Default Priority', choices=[

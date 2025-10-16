@@ -263,7 +263,8 @@ def topics():
 def new_topic():
     """Create new topic"""
     form = TopicForm()
-    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.all()]
+    form.goal_id.choices = [(g.goal_id, g.goal_name) for g in Goal.query.filter_by(user_id=current_user.user_id).all()]
+    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.filter_by(user_id=current_user.user_id).all()]
     
     if form.validate_on_submit():
         topic = Topic(
@@ -287,7 +288,8 @@ def edit_topic(id):
     """Edit existing topic"""
     topic = Topic.query.get_or_404(id)
     form = TopicForm()
-    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.all()]
+    form.goal_id.choices = [(g.goal_id, g.goal_name) for g in Goal.query.filter_by(user_id=current_user.user_id).all()]
+    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.filter_by(user_id=current_user.user_id).all()]
     
     if form.validate_on_submit():
         topic.topic_name = form.topic_name.data
@@ -300,6 +302,9 @@ def edit_topic(id):
         flash('Topic updated successfully!', 'success')
         return redirect(url_for('main.topics'))
     elif request.method == 'GET':
+        # Get the goal_id from the subject's goal
+        subject = Subject.query.get(topic.subject_id)
+        form.goal_id.data = subject.goal_id if subject else None
         form.topic_name.data = topic.topic_name
         form.subject_id.data = topic.subject_id
         form.syllabus_ref.data = topic.syllabus_ref
@@ -716,3 +721,17 @@ def api_dashboard_data():
     }
     
     return jsonify(data)
+
+@bp.route('/api/subjects-by-goal/<int:goal_id>')
+@login_required
+def api_subjects_by_goal(goal_id):
+    """API endpoint to get subjects filtered by goal"""
+    subjects = Subject.query.filter_by(
+        user_id=current_user.user_id,
+        goal_id=goal_id
+    ).all()
+    
+    return jsonify([{
+        'id': s.subject_id,
+        'name': s.name
+    } for s in subjects])
