@@ -263,8 +263,12 @@ def topics():
 def new_topic():
     """Create new topic"""
     form = TopicForm()
-    form.goal_id.choices = [(g.goal_id, g.goal_name) for g in Goal.query.filter_by(user_id=current_user.user_id).all()]
-    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.filter_by(user_id=current_user.user_id).all()]
+    # Get user's goals
+    user_goals = Goal.query.filter_by(user_id=current_user.id).all()
+    form.goal_id.choices = [(g.goal_id, g.goal_name or g.title) for g in user_goals]
+    
+    # Get all subjects from user's goals
+    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.join(Goal).filter(Goal.user_id == current_user.id).all()]
     
     if form.validate_on_submit():
         topic = Topic(
@@ -288,8 +292,12 @@ def edit_topic(id):
     """Edit existing topic"""
     topic = Topic.query.get_or_404(id)
     form = TopicForm()
-    form.goal_id.choices = [(g.goal_id, g.goal_name) for g in Goal.query.filter_by(user_id=current_user.user_id).all()]
-    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.filter_by(user_id=current_user.user_id).all()]
+    # Get user's goals
+    user_goals = Goal.query.filter_by(user_id=current_user.id).all()
+    form.goal_id.choices = [(g.goal_id, g.goal_name or g.title) for g in user_goals]
+    
+    # Get all subjects from user's goals
+    form.subject_id.choices = [(s.subject_id, s.name) for s in Subject.query.join(Goal).filter(Goal.user_id == current_user.id).all()]
     
     if form.validate_on_submit():
         topic.topic_name = form.topic_name.data
@@ -738,10 +746,13 @@ def api_dashboard_data():
 @login_required
 def api_subjects_by_goal(goal_id):
     """API endpoint to get subjects filtered by goal"""
-    subjects = Subject.query.filter_by(
-        user_id=current_user.user_id,
-        goal_id=goal_id
-    ).all()
+    # Verify the goal belongs to the current user for security
+    goal = Goal.query.filter_by(goal_id=goal_id, user_id=current_user.id).first()
+    if not goal:
+        return jsonify([])  # Return empty list if goal doesn't belong to user
+    
+    # Get subjects for this goal
+    subjects = Subject.query.filter_by(goal_id=goal_id).all()
     
     return jsonify([{
         'id': s.subject_id,
