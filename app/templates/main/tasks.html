@@ -121,34 +121,52 @@
                  data-task-id="{{ task.task_id }}"
                  x-data="{ expanded: false }">
                 
-                <!-- Compact View (Always Visible) -->
-                <div class="p-4 cursor-pointer" @click="expanded = !expanded">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 flex-1 min-w-0">
+                <!-- Compact View (Always Visible) - Mobile Optimized -->
+                <div class="p-3 sm:p-4 cursor-pointer" @click="expanded = !expanded">
+                    <!-- Mobile: Stacked Layout, Desktop: Horizontal -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <!-- Top Row: Checkbox + Task Name + Expand Icon -->
+                        <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                             <!-- Completion Checkbox -->
                             <input type="checkbox" 
                                    {% if task.latest_completion and task.latest_completion.completed %}checked{% endif %}
                                    onchange="toggleTaskCompletion({{ task.task_id }}, this.checked)"
                                    @click.stop
-                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0">
+                                   class="w-5 h-5 mt-0.5 sm:mt-0 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0">
                             
-                            <!-- Task Name -->
-                            <h3 class="text-base font-semibold text-gray-900 truncate
-                                       {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">
-                                {{ task.task_name or task.display_name }}
-                            </h3>
+                            <!-- Task Name - Full width on mobile, wraps instead of truncate -->
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm sm:text-base font-semibold text-gray-900 break-words line-clamp-2 sm:line-clamp-1
+                                           {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">
+                                    {{ task.task_name or task.display_name }}
+                                </h3>
+                                
+                                <!-- Mobile: Show goal badge below task name -->
+                                {% if task.goal %}
+                                <span class="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 sm:hidden">
+                                    <i class="material-icons text-xs mr-1">flag</i>
+                                    <span class="truncate max-w-[150px]">{{ task.goal.goal_name }}</span>
+                                </span>
+                                {% endif %}
+                            </div>
                             
-                            <!-- Goal Badge -->
+                            <!-- Desktop: Goal Badge (hidden on mobile, shown on sm+) -->
                             {% if task.goal %}
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 flex-shrink-0">
+                            <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 flex-shrink-0">
                                 <i class="material-icons text-xs mr-1">flag</i>
-                                {{ task.goal.goal_name }}
+                                <span class="truncate max-w-[120px]">{{ task.goal.goal_name }}</span>
                             </span>
                             {% endif %}
+                            
+                            <!-- Expand/Collapse Icon (Mobile - positioned at top right) -->
+                            <div class="flex items-center sm:hidden ml-auto">
+                                <i class="material-icons text-gray-400 transition-transform duration-200" 
+                                   :class="expanded ? 'rotate-180' : ''">expand_more</i>
+                            </div>
                         </div>
                         
-                        <!-- Expand/Collapse Icon -->
-                        <div class="flex items-center space-x-2 flex-shrink-0 ml-3">
+                        <!-- Desktop: Right Side Icons -->
+                        <div class="hidden sm:flex items-center space-x-2 flex-shrink-0">
                             <!-- Status Indicator -->
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                          {% if task.status == 'completed' %}bg-green-100 text-green-800
@@ -166,28 +184,47 @@
                             <i class="material-icons text-gray-400 transition-transform duration-200" 
                                :class="expanded ? 'rotate-180' : ''">expand_more</i>
                         </div>
+                        
+                        <!-- Mobile: Status Indicator Below -->
+                        <div class="flex sm:hidden items-center gap-2 pl-8">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                         {% if task.status == 'completed' %}bg-green-100 text-green-800
+                                         {% elif task.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {% if task.status == 'completed' %}
+                                    <i class="material-icons text-xs mr-1">check_circle</i>
+                                    <span>Completed</span>
+                                {% elif task.status == 'in_progress' %}
+                                    <i class="material-icons text-xs mr-1">schedule</i>
+                                    <span>In Progress</span>
+                                {% else %}
+                                    <i class="material-icons text-xs mr-1">radio_button_unchecked</i>
+                                    <span>Pending</span>
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Expanded Details (Toggle Visibility) -->
+                <!-- Expanded Details (Toggle Visibility) - Mobile Optimized -->
                 <div x-show="expanded" 
                      x-collapse
-                     class="px-4 pb-4 pt-2 border-t border-gray-100">
+                     class="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-gray-100">
                     
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         <!-- Topic Badge -->
                         {% if task.topic %}
                         <div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                <i class="material-icons text-xs mr-1">topic</i>
-                                {{ task.topic.topic_name }}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 max-w-full">
+                                <i class="material-icons text-xs mr-1 flex-shrink-0">topic</i>
+                                <span class="truncate">{{ task.topic.topic_name }}</span>
                             </span>
                         </div>
                         {% endif %}
                         
-                        <!-- Notes -->
+                        <!-- Notes - Mobile optimized with better wrapping -->
                         {% if task.notes %}
-                        <p class="text-sm text-gray-600 {% if task.status == 'completed' %}text-gray-400{% endif %}">
+                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed break-words {% if task.status == 'completed' %}text-gray-400{% endif %}">
                             {{ task.notes }}
                         </p>
                         {% endif %}
@@ -213,8 +250,8 @@
                             </span>
                         </div>
                         
-                        <!-- Task Details Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-600">
+                        <!-- Task Details Grid - Mobile: 1 column, Tablet: 2 columns, Desktop: 4 columns -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
                                 {% if task.planned_date %}
                                 <div class="flex items-center">
                                     <i class="material-icons text-sm mr-1 text-orange-600">event</i>
@@ -244,24 +281,24 @@
                                 {% endif %}
                             </div>
                         
-                        <!-- Actions Row -->
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                            <div class="flex gap-2">
+                        <!-- Actions Row - Mobile Optimized -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-gray-100">
+                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                                 <a href="{{ url_for('main.complete_task', id=task.task_id) }}" 
-                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                   class="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors w-full sm:w-auto">
                                     <i class="material-icons text-sm mr-1">edit_note</i>
                                     Complete
                                 </a>
                                 {% if not task.latest_completion or not task.latest_completion.completed %}
                                 <button onclick="markTaskComplete({{ task.task_id }})" 
-                                        class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                                        class="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors w-full sm:w-auto">
                                     <i class="material-icons text-sm mr-1">check_circle</i>
                                     Quick Complete
                                 </button>
                                 {% endif %}
                             </div>
                             <button onclick="deleteTask({{ task.task_id }})" 
-                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                                    class="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors w-full sm:w-auto">
                                 <i class="material-icons text-sm mr-1">delete</i>
                                 Delete
                             </button>
