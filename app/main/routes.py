@@ -337,8 +337,14 @@ def edit_goal(id):
     form = GoalForm(obj=goal)
     
     if form.validate_on_submit():
-        goal.title = form.goal_name.data  # Update title field
-        goal.goal_name = form.goal_name.data
+        # Ensure goal_name has a value
+        goal_name_value = form.goal_name.data
+        if not goal_name_value:
+            flash('Goal name is required!', 'error')
+            return render_template('main/goal_form.html', form=form, title='Edit Goal')
+        
+        goal.title = goal_name_value  # Update title field (required in DB)
+        goal.goal_name = goal_name_value  # Keep goal_name in sync
         goal.description = form.description.data
         goal.goal_type = form.goal_type.data
         goal.target_date = form.target_date.data
@@ -351,7 +357,7 @@ def edit_goal(id):
         flash('Goal updated successfully!', 'success')
         return redirect(url_for('main.goals'))
     elif request.method == 'GET':
-        # Pre-fill form with current values
+        # Pre-fill form with current values (prioritize goal_name, fallback to title)
         form.goal_name.data = goal.goal_name or goal.title
         form.description.data = goal.description
         form.goal_type.data = goal.goal_type
@@ -376,10 +382,16 @@ def new_goal():
     """Create new goal"""
     form = GoalForm()
     if form.validate_on_submit():
+        # Ensure goal_name has a value
+        goal_name_value = form.goal_name.data
+        if not goal_name_value:
+            flash('Goal name is required!', 'error')
+            return render_template('main/goal_form.html', form=form, title='New Goal')
+        
         goal = Goal(
             user_id=current_user.id,
-            title=form.goal_name.data,  # Set title (required field)
-            goal_name=form.goal_name.data,
+            title=goal_name_value,  # Set title (required field in DB)
+            goal_name=goal_name_value,  # Set goal_name for consistency
             description=form.description.data,
             goal_type=form.goal_type.data,
             target_date=form.target_date.data,
