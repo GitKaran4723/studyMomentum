@@ -4,10 +4,17 @@ Based on the comprehensive SQLite schema provided
 """
 
 from datetime import datetime, date
+import pytz
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
 from app.extensions import db
+
+# Helper function to get current IST time
+def ist_now():
+    """Return current datetime in IST timezone"""
+    ist = pytz.timezone('Asia/Kolkata')
+    return datetime.now(ist)
 
 class User(UserMixin, db.Model):
     """User model with admin capabilities"""
@@ -18,7 +25,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
@@ -46,7 +53,7 @@ class Subject(db.Model):
     name = db.Column(db.String(100), nullable=False)
     short_code = db.Column(db.String(10))
     description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     # Relationships
     goal = db.relationship('Goal', backref=db.backref('subjects', lazy='dynamic', cascade='all, delete-orphan'))
@@ -96,7 +103,7 @@ class Topic(db.Model):
     default_priority = db.Column(db.Integer, default=2, nullable=False)
     suggested_source = db.Column(db.Text)
     doc_link = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     __table_args__ = (
         CheckConstraint('default_priority >= 1 AND default_priority <= 5'),
@@ -153,7 +160,7 @@ class Goal(db.Model):
     success_criteria = db.Column(db.Text)
     reward = db.Column(db.Text)
     status = db.Column(db.String(20), default='active')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     # Computed properties for compatibility
     @property
@@ -227,7 +234,7 @@ class Task(db.Model):
     ssb_warmup = db.Column(db.Boolean, default=False)
     ugc_related = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     __table_args__ = (
         CheckConstraint('priority >= 1 AND priority <= 5'),
@@ -329,7 +336,7 @@ class Session(db.Model):
     end_time = db.Column(db.DateTime)
     duration_min = db.Column(db.Integer)
     remark = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     def __repr__(self):
         return f'<Session {self.session_id}>'
@@ -348,7 +355,7 @@ class Completion(db.Model):
     notes_link = db.Column(db.Text)
     attempts = db.Column(db.Integer, default=1)
     is_final = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     __table_args__ = (
         CheckConstraint('enthusiasm_score >= 0 AND enthusiasm_score <= 10'),
@@ -369,7 +376,7 @@ class DailySnapshot(db.Model):
     total_tasks_done = db.Column(db.Integer)
     weighted_score = db.Column(db.Float)
     total_duration_min = db.Column(db.Integer)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     def __repr__(self):
         return f'<DailySnapshot {self.snapshot_date}>'

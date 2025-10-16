@@ -10,9 +10,9 @@
             <!-- Hero Content -->
             <div class="space-y-6">
                 <!-- Greeting Badge -->
-                <div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                <div id="greeting-badge" class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
                     <i class="material-icons text-lg mr-2">wb_sunny</i>
-                    <span>Good {% if now().hour < 12 %}morning{% elif now().hour < 18 %}afternoon{% else %}evening{% endif %}</span>
+                    <span id="greeting-text">Good morning</span>
                 </div>
                 
                 <!-- Main Title -->
@@ -417,6 +417,9 @@
 
         <!-- Task Statistics Dropdown -->
         {% if today_tasks %}
+        {% set today_pending = today_tasks|rejectattr('is_completed')|list %}
+        {% set today_done = today_tasks|selectattr('is_completed')|list %}
+        
         <div x-data="{ showStats: false }" class="mb-6">
             <div class="max-w-4xl mx-auto">
                 <button @click="showStats = !showStats" 
@@ -540,84 +543,174 @@
         {% endif %}
 
         {% if today_tasks %}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {% for task in today_tasks %}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 
-                           {% if task.is_completed %}bg-green-50 border-green-200{% endif %}">
-                    <!-- Task Header -->
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            {% if task.is_completed %}
-                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <i class="material-icons text-white text-sm">check</i>
-                                </div>
-                            {% else %}
+            <!-- Tasks to Do Section -->
+            {% if today_pending %}
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">
+                        <span class="inline-flex items-center">
+                            <i class="material-icons text-orange-600 mr-2">radio_button_unchecked</i>
+                            Tasks To Do
+                            <span class="ml-3 px-3 py-1 bg-orange-100 text-orange-800 text-sm font-semibold rounded-full">
+                                {{ today_pending|length }}
+                            </span>
+                        </span>
+                    </h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for task in today_pending %}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+                        <!-- Task Header -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
                                 <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                                     <i class="material-icons text-gray-500 text-sm">radio_button_unchecked</i>
                                 </div>
-                            {% endif %}
-                            
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                         {% if task.priority == 1 %}bg-red-100 text-red-800
-                                         {% elif task.priority == 2 %}bg-yellow-100 text-yellow-800
-                                         {% else %}bg-blue-100 text-blue-800{% endif %}">
-                                P{{ task.priority }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Task Content -->
-                    <div class="space-y-3">
-                        <h3 class="text-lg font-semibold text-gray-900">{{ task.topic.topic_name }}</h3>
-                        
-                        <div class="flex flex-wrap gap-2">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                {{ task.topic.subject.name }}
-                            </span>
-                            {% if task.goal %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="material-icons text-xs mr-1">flag</i>
-                                    {{ task.goal.goal_name or task.goal.title }}
+                                
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                             {% if task.priority == 1 %}bg-red-100 text-red-800
+                                             {% elif task.priority == 2 %}bg-yellow-100 text-yellow-800
+                                             {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    P{{ task.priority }}
                                 </span>
-                            {% endif %}
-                        </div>
-                        
-                        {% if task.notes %}
-                        <p class="text-sm text-gray-600 leading-relaxed">{{ task.notes }}</p>
-                        {% endif %}
-                        
-                        <!-- Task Details -->
-                        <div class="flex flex-wrap gap-4 text-sm text-gray-500">
-                            {% if task.planned_start %}
-                            <div class="flex items-center">
-                                <i class="material-icons text-sm mr-1">schedule</i>
-                                <span>{{ task.planned_start }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            {% if task.planned_duration_min %}
-                            <div class="flex items-center">
-                                <i class="material-icons text-sm mr-1">timer</i>
-                                <span>{{ task.planned_duration_min }} min</span>
-                            </div>
-                            {% endif %}
-                            
-                            <div class="flex items-center">
-                                <i class="material-icons text-sm mr-1">grade</i>
-                                <span>{{ "%.1f"|format(task.task_score) }}</span>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Task Actions -->
-                    <div class="mt-6 pt-4 border-t border-gray-200">
-                        {% if not task.is_completed %}
+                        
+                        <!-- Task Content -->
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ task.topic.topic_name }}</h3>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ task.topic.subject.name }}
+                                </span>
+                                {% if task.goal %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="material-icons text-xs mr-1">flag</i>
+                                        {{ task.goal.goal_name or task.goal.title }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if task.notes %}
+                            <p class="text-sm text-gray-600 leading-relaxed">{{ task.notes }}</p>
+                            {% endif %}
+                            
+                            <!-- Task Details -->
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                                {% if task.planned_start %}
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">schedule</i>
+                                    <span>{{ task.planned_start }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if task.planned_duration_min %}
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">timer</i>
+                                    <span>{{ task.planned_duration_min }} min</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">grade</i>
+                                    <span>{{ "%.1f"|format(task.task_score) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Actions -->
+                        <div class="mt-6 pt-4 border-t border-gray-200">
                             <a href="{{ url_for('main.complete_task', id=task.task_id) }}" 
                                class="inline-flex items-center justify-center w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="material-icons text-sm mr-2">check</i>
                                 Complete Task
                             </a>
-                        {% else %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Completed Tasks Section -->
+            {% if today_done %}
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">
+                        <span class="inline-flex items-center">
+                            <i class="material-icons text-green-600 mr-2">check_circle</i>
+                            Completed Today
+                            <span class="ml-3 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                                {{ today_done|length }}
+                            </span>
+                        </span>
+                    </h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for task in today_done %}
+                    <div class="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6 hover:shadow-md transition-shadow duration-200">
+                        <!-- Task Header -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="material-icons text-white text-sm">check</i>
+                                </div>
+                                
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                             {% if task.priority == 1 %}bg-red-100 text-red-800
+                                             {% elif task.priority == 2 %}bg-yellow-100 text-yellow-800
+                                             {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    P{{ task.priority }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Content -->
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ task.topic.topic_name }}</h3>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ task.topic.subject.name }}
+                                </span>
+                                {% if task.goal %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="material-icons text-xs mr-1">flag</i>
+                                        {{ task.goal.goal_name or task.goal.title }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if task.notes %}
+                            <p class="text-sm text-gray-600 leading-relaxed">{{ task.notes }}</p>
+                            {% endif %}
+                            
+                            <!-- Task Details -->
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                                {% if task.planned_start %}
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">schedule</i>
+                                    <span>{{ task.planned_start }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if task.planned_duration_min %}
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">timer</i>
+                                    <span>{{ task.planned_duration_min }} min</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center">
+                                    <i class="material-icons text-sm mr-1">grade</i>
+                                    <span>{{ "%.1f"|format(task.task_score) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Actions -->
+                        <div class="mt-6 pt-4 border-t border-green-200">
                             <div class="flex items-center justify-center text-green-600 font-medium">
                                 <i class="material-icons text-sm mr-2">check_circle</i>
                                 <span>Completed</span>
@@ -627,11 +720,12 @@
                                     </span>
                                 {% endif %}
                             </div>
-                        {% endif %}
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
+            {% endif %}
         {% else %}
             <div class="text-center py-16">
                 <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -908,6 +1002,31 @@ window.timeProgress = function() {
         }
     }
 };
+
+// Client-side greeting to avoid server timezone mismatch.
+// This uses the user's browser local time to decide morning/afternoon/evening.
+function setGreeting() {
+    const now = new Date();
+    const hours = now.getHours();
+    let greetingPart = 'morning';
+    if (hours < 12) {
+        greetingPart = 'morning';
+    } else if (hours < 18) {
+        greetingPart = 'afternoon';
+    } else {
+        greetingPart = 'evening';
+    }
+    const el = document.getElementById('greeting-text');
+    if (el) {
+        el.textContent = 'Good ' + greetingPart;
+    }
+}
+
+// Run greeting once DOM is ready and update every minute to stay accurate.
+document.addEventListener('DOMContentLoaded', () => {
+    setGreeting();
+    setInterval(setGreeting, 60 * 1000);
+});
 
 // Log to confirm script loaded
 console.log('timeProgress function loaded successfully');

@@ -9,12 +9,32 @@ from app.main import bp
 from app.main.forms import SubjectForm, TopicForm, GoalForm, TaskForm, CompletionForm, SessionForm
 from app.models import Subject, Topic, Goal, GoalTopic, Task, Completion, Session, DailySnapshot
 
+# IST timezone helper functions
+def get_ist_timezone():
+    """Get IST timezone object"""
+    return pytz.timezone('Asia/Kolkata')
+
+def get_ist_now():
+    """Get current datetime in IST"""
+    return datetime.now(get_ist_timezone())
+
+def get_ist_today():
+    """Get today's date in IST"""
+    return get_ist_now().date()
+
+def get_ist_date(dt):
+    """Convert a datetime to IST date"""
+    if dt.tzinfo is None:
+        # If naive datetime, assume UTC and convert to IST
+        dt = pytz.UTC.localize(dt)
+    return dt.astimezone(get_ist_timezone()).date()
+
 @bp.route('/')
 @bp.route('/dashboard')
 @login_required
 def dashboard():
     """Main dashboard"""
-    today = date.today()
+    today = get_ist_today()
     yesterday = today - timedelta(days=1)
     week_start = today - timedelta(days=today.weekday())
     month_start = today.replace(day=1)
@@ -90,7 +110,7 @@ def dashboard():
                          overdue_tasks=overdue_tasks,
                          overdue_count=len(overdue_tasks),
                          current_ist_time=current_ist_time,
-                         now=datetime.now)
+                         now=get_ist_now)
 
 @bp.route('/subjects')
 @login_required
@@ -383,16 +403,25 @@ def tasks():
     
     query = Task.query.filter_by(user_id=current_user.id)
     
-    # Date filtering
+    # Date filtering - Default to today if no filter specified (use IST)
+    today_ist = get_ist_today()
     if date_filter:
         if date_filter == 'today':
-            query = query.filter(Task.planned_date == date.today())
+            query = query.filter(Task.planned_date == today_ist)
+            date_filter = today_ist.strftime('%Y-%m-%d')
+        elif date_filter == 'all':
+            # Show all tasks - don't filter by date
+            date_filter = ''
         else:
             try:
                 filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
                 query = query.filter(Task.planned_date == filter_date)
             except ValueError:
                 pass
+    else:
+        # Default to today's date if no date filter is provided (IST)
+        query = query.filter(Task.planned_date == today_ist)
+        date_filter = today_ist.strftime('%Y-%m-%d')
     
     # Status filtering
     if status_filter == 'completed':
@@ -419,7 +448,10 @@ def tasks():
     
     goals = Goal.query.filter_by(user_id=current_user.id).all()
     
-    return render_template('main/tasks.html', tasks=tasks, goals=goals)
+    # Pass today's date to template for default value (IST)
+    today_date = get_ist_today().strftime('%Y-%m-%d')
+    
+    return render_template('main/tasks.html', tasks=tasks, goals=goals, today_date=today_date)
 
 @bp.route('/tasks/new', methods=['GET', 'POST'])
 @login_required
@@ -529,9 +561,9 @@ def delete_task(id):
 @login_required
 def analytics():
     """Analytics and reports"""
-    # Get date range from query params
+    # Get date range from query params (use IST)
     days = request.args.get('days', 30, type=int)
-    end_date = date.today()
+    end_date = get_ist_today()
     start_date = end_date - timedelta(days=days-1)
     
     # Daily scores
@@ -594,15 +626,16 @@ def analytics():
     total_goals = Goal.query.filter_by(user_id=current_user.id).count()
     completed_goals = Goal.query.filter_by(user_id=current_user.id, status='completed').count()
     
-    # Calculate streaks (days with completed tasks)
+    # Calculate streaks (days with completed tasks) - use IST
+    today_ist = get_ist_today()
     completed_dates = db.session.query(Task.planned_date).join(Completion).filter(
         Task.user_id == current_user.id,
         Completion.completed == True,
-        Task.planned_date <= date.today()
+        Task.planned_date <= today_ist
     ).distinct().order_by(Task.planned_date.desc()).all()
     
     current_streak = 0
-    check_date = date.today()
+    check_date = today_ist
     for row in completed_dates:
         if row.planned_date == check_date or row.planned_date == check_date - timedelta(days=1):
             current_streak += 1
@@ -610,8 +643,9 @@ def analytics():
         else:
             break
     
-    # Weekly stats
-    week_start = date.today() - timedelta(days=date.today().weekday())
+    # Weekly stats (use IST)
+    today_ist = get_ist_today()
+    week_start = today_ist - timedelta(days=today_ist.weekday())
     weekly_hours = db.session.query(
         func.sum(Session.duration_min)
     ).join(Task).filter(
@@ -626,8 +660,8 @@ def analytics():
         Completion.completed == True
     ).count()
     
-    # Monthly milestones (completed goals this month)
-    month_start = date.today().replace(day=1)
+    # Monthly milestones (completed goals this month) - use IST
+    month_start = today_ist.replace(day=1)
     monthly_milestones = Goal.query.filter(
         Goal.user_id == current_user.id,
         Goal.status == 'completed',
@@ -658,7 +692,7 @@ def analytics():
 @login_required
 def api_dashboard_data():
     """API endpoint for dashboard data"""
-    today = date.today()
+    today = get_ist_today()
     
     today_tasks = Task.query.filter(
         Task.user_id == current_user.id,
