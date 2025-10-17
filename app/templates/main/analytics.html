@@ -123,8 +123,11 @@
             </div>
             <div class="text-3xl font-bold text-gray-900 mb-2">{{ analytics_data.get('completed_goals', 0) }}/{{ analytics_data.get('total_goals', 0) }}</div>
             <div class="w-full bg-gray-200 rounded-full h-2">
+                {% set total_goals = analytics_data.get('total_goals', 0) %}
+                {% set completed_goals = analytics_data.get('completed_goals', 0) %}
+                {% set goal_percentage = ((completed_goals / total_goals * 100)|round) if total_goals > 0 else 0 %}
                 <div class="bg-purple-600 h-2 rounded-full transition-all duration-500" 
-                     style="width: {{ (analytics_data.get('completed_goals', 0) / analytics_data.get('total_goals', 1) * 100)|round }}%"></div>
+                     style="width: {{ goal_percentage }}%"></div>
             </div>
         </div>
     </div>
