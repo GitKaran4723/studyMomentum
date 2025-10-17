@@ -1,6 +1,7 @@
 """Main application routes"""
 from datetime import datetime, date, timedelta
 import pytz
+import os
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import func, and_, or_, case
@@ -96,6 +97,10 @@ def dashboard():
     ist = pytz.timezone('Asia/Kolkata')
     current_ist_time = datetime.now(ist)
     
+    # Check prediction feature flags (Stage 3 & 4)
+    prediction_enabled = os.environ.get('PREDICTION_ENABLED', 'false').lower() in ['preview_ui', 'on', 'true']
+    write_enabled = os.environ.get('PREDICTION_ENABLED', 'false').lower() in ['on', 'true']
+    
     return render_template('main/dashboard.html', 
                          today_tasks=today_tasks,
                          today_completed=today_completed,
@@ -110,7 +115,9 @@ def dashboard():
                          overdue_tasks=overdue_tasks,
                          overdue_count=len(overdue_tasks),
                          current_ist_time=current_ist_time,
-                         now=get_ist_now)
+                         now=get_ist_now,
+                         prediction_enabled=prediction_enabled,
+                         write_enabled=write_enabled)
 
 @bp.route('/subjects')
 @login_required
@@ -119,12 +126,18 @@ def subjects():
     goal_id = request.args.get('goal_id', type=int)
     
     if goal_id:
-        subjects = Subject.query.filter_by(goal_id=goal_id).all()
+        # Verify goal belongs to current user
+        goal = Goal.query.filter_by(goal_id=goal_id, user_id=current_user.id).first()
+        if goal:
+            subjects = Subject.query.filter_by(goal_id=goal_id).all()
+        else:
+            subjects = []
     else:
-        subjects = Subject.query.all()
+        # Show all subjects from user's goals only
+        subjects = Subject.query.join(Goal).filter(Goal.user_id == current_user.id).all()
     
     goals = Goal.query.filter_by(user_id=current_user.id).all()
-    total_subjects_count = Subject.query.count()
+    total_subjects_count = Subject.query.join(Goal).filter(Goal.user_id == current_user.id).count()
     
     return render_template('main/subjects.html', 
                          subjects=subjects, 
@@ -166,7 +179,11 @@ def edit_subject(id):
         flash('Admin privileges required', 'error')
         return redirect(url_for('main.subjects'))
     
-    subject = Subject.query.get_or_404(id)
+    # Ensure subject belongs to user's goal
+    subject = Subject.query.join(Goal).filter(
+        Subject.subject_id == id,
+        Goal.user_id == current_user.id
+    ).first_or_404()
     form = SubjectForm()
     # Populate goal choices
     form.goal_id.choices = [(g.goal_id, g.title) for g in Goal.query.filter_by(user_id=current_user.id).all()]
@@ -195,7 +212,11 @@ def delete_subject(id):
         flash('Admin privileges required', 'error')
         return redirect(url_for('main.subjects'))
     
-    subject = Subject.query.get_or_404(id)
+    # Ensure subject belongs to user's goal
+    subject = Subject.query.join(Goal).filter(
+        Subject.subject_id == id,
+        Goal.user_id == current_user.id
+    ).first_or_404()
     
     # Check if subject has tasks
     task_count = Task.query.join(Topic).filter(Topic.subject_id == subject.subject_id).count()
@@ -246,16 +267,16 @@ def topics():
     page = request.args.get('page', 1, type=int)
     subject_id = request.args.get('subject_id', type=int)
     
-    query = Topic.query
+    query = Topic.query.join(Subject).join(Goal).filter(Goal.user_id == current_user.id)
     if subject_id:
-        query = query.filter_by(subject_id=subject_id)
+        query = query.filter(Topic.subject_id == subject_id)
     
     topics = query.paginate(
         page=page, per_page=current_app.config['ITEMS_PER_PAGE'],
         error_out=False
     )
     
-    subjects = Subject.query.all()
+    subjects = Subject.query.join(Goal).filter(Goal.user_id == current_user.id).all()
     return render_template('main/topics.html', topics=topics, subjects=subjects, selected_subject=subject_id)
 
 @bp.route('/topics/new', methods=['GET', 'POST'])
@@ -290,7 +311,11 @@ def new_topic():
 @login_required
 def edit_topic(id):
     """Edit existing topic"""
-    topic = Topic.query.get_or_404(id)
+    # Ensure topic belongs to user's goal
+    topic = Topic.query.join(Subject).join(Goal).filter(
+        Topic.topic_id == id,
+        Goal.user_id == current_user.id
+    ).first_or_404()
     form = TopicForm()
     # Get user's goals
     user_goals = Goal.query.filter_by(user_id=current_user.id).all()
@@ -344,12 +369,15 @@ def edit_goal(id):
     goal = Goal.query.filter_by(goal_id=id, user_id=current_user.id).first_or_404()
     form = GoalForm(obj=goal)
     
+    # Check prediction feature flag
+    prediction_enabled = os.environ.get('PREDICTION_ENABLED', 'false').lower() in ['preview_ui', 'true']
+    
     if form.validate_on_submit():
         # Ensure goal_name has a value
         goal_name_value = form.goal_name.data
         if not goal_name_value:
             flash('Goal name is required!', 'error')
-            return render_template('main/goal_form.html', form=form, title='Edit Goal')
+            return render_template('main/goal_form.html', form=form, title='Edit Goal', prediction_enabled=prediction_enabled)
         
         goal.title = goal_name_value  # Update title field (required in DB)
         goal.goal_name = goal_name_value  # Keep goal_name in sync
@@ -361,6 +389,14 @@ def edit_goal(id):
         goal.success_criteria = form.success_criteria.data
         goal.reward = form.reward.data
         goal.status = form.status.data
+        
+        # Stage 3: Update prediction fields if enabled
+        if prediction_enabled:
+            goal.exam_date = form.exam_date.data
+            goal.threshold_marks = form.threshold_marks.data
+            goal.daily_hours_default = form.daily_hours_default.data or 6.0
+            goal.split_new_default = form.split_new_default.data or 0.6
+        
         db.session.commit()
         flash('Goal updated successfully!', 'success')
         return redirect(url_for('main.goals'))
@@ -375,8 +411,15 @@ def edit_goal(id):
         form.success_criteria.data = goal.success_criteria
         form.reward.data = goal.reward
         form.status.data = goal.status
+        
+        # Pre-fill prediction fields if enabled
+        if prediction_enabled:
+            form.exam_date.data = goal.exam_date
+            form.threshold_marks.data = goal.threshold_marks
+            form.daily_hours_default.data = goal.daily_hours_default or 6.0
+            form.split_new_default.data = goal.split_new_default or 0.6
     
-    return render_template('main/goal_form.html', form=form, title='Edit Goal')
+    return render_template('main/goal_form.html', form=form, title='Edit Goal', prediction_enabled=prediction_enabled)
 
 @bp.route('/goals/add')
 @login_required
@@ -389,12 +432,16 @@ def add_goal():
 def new_goal():
     """Create new goal"""
     form = GoalForm()
+    
+    # Check prediction feature flag
+    prediction_enabled = os.environ.get('PREDICTION_ENABLED', 'false').lower() in ['preview_ui', 'true']
+    
     if form.validate_on_submit():
         # Ensure goal_name has a value
         goal_name_value = form.goal_name.data
         if not goal_name_value:
             flash('Goal name is required!', 'error')
-            return render_template('main/goal_form.html', form=form, title='New Goal')
+            return render_template('main/goal_form.html', form=form, title='New Goal', prediction_enabled=prediction_enabled)
         
         goal = Goal(
             user_id=current_user.id,
@@ -407,14 +454,19 @@ def new_goal():
             unit=form.unit.data,
             success_criteria=form.success_criteria.data,
             reward=form.reward.data,
-            status=form.status.data
+            status=form.status.data,
+            # Stage 3: Prediction fields
+            exam_date=form.exam_date.data if prediction_enabled else None,
+            threshold_marks=form.threshold_marks.data if prediction_enabled else None,
+            daily_hours_default=form.daily_hours_default.data if prediction_enabled else 6.0,
+            split_new_default=form.split_new_default.data if prediction_enabled else 0.6
         )
         db.session.add(goal)
         db.session.commit()
         flash('Goal created successfully!', 'success')
         return redirect(url_for('main.goals'))
     
-    return render_template('main/goal_form.html', form=form, title='New Goal')
+    return render_template('main/goal_form.html', form=form, title='New Goal', prediction_enabled=prediction_enabled)
 
 @bp.route('/tasks')
 @login_required

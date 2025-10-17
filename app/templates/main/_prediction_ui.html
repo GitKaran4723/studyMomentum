@@ -1,0 +1,473 @@
+{% if prediction_enabled %}
+<!-- ==================== PREDICTION UI PREVIEW (Stage 3) ==================== -->
+<!-- Feature Flag: PREDICTION_ENABLED=preview_ui -->
+
+<div x-data="predictionDashboard()" x-init="initPrediction()" class="mb-8">
+    <!-- Loading State -->
+    <div x-show="loading" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+        <p class="mt-4 text-gray-600">Loading predictions...</p>
+    </div>
+
+    <!-- Error State -->
+    <div x-show="error" x-cloak class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-start">
+            <i class="material-icons text-red-600 mr-3">error</i>
+            <div>
+                <h4 class="font-semibold text-red-900 mb-1">Prediction Error</h4>
+                <p class="text-sm text-red-700" x-text="errorMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Prediction UI - Only show when loaded and active_goals exist -->
+    <div x-show="!loading && !error && hasActiveGoal" x-cloak>
+        
+        <!-- Goal Selector (if multiple goals) -->
+        <div x-show="goals.length > 1" class="mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <label class="block text-sm font-semibold text-gray-900 mb-2">Select Goal for Predictions</label>
+                <select x-model="selectedGoalId" 
+                        @change="loadPredictions()"
+                        class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all">
+                    <template x-for="goal in goals" :key="goal.goal_id">
+                        <option :value="goal.goal_id" x-text="goal.goal_name || goal.title"></option>
+                    </template>
+                </select>
+            </div>
+        </div>
+
+        <!-- Prediction Stats Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Left: Goal Status Card -->
+            <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg text-white p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center">
+                        <i class="material-icons mr-2">analytics</i>
+                        Goal Prediction Status
+                    </h3>
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium">
+                        PREVIEW ONLY
+                    </span>
+                </div>
+
+                <div x-show="status" class="space-y-4">
+                    <!-- Current State -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <h4 class="text-sm font-semibold mb-3 opacity-90">Current State</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-2xl font-bold" x-text="status?.current_state?.mu?.toFixed(1) || '0.0'"></div>
+                                <div class="text-xs opacity-75">Expected Marks (μ)</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold" x-text="((status?.current_state?.p_clear_today || 0) * 100).toFixed(1) + '%'"></div>
+                                <div class="text-xs opacity-75">P(clear today)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exam Projection -->
+                    <div x-show="status?.exam_projection?.days_remaining" class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <h4 class="text-sm font-semibold mb-3 opacity-90">Exam Projection</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-2xl font-bold" x-text="status?.exam_projection?.days_remaining || '0'"></div>
+                                <div class="text-xs opacity-75">Days Remaining</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold" x-text="((status?.exam_projection?.p_clear_exam || 0) * 100).toFixed(1) + '%'"></div>
+                                <div class="text-xs opacity-75">P(clear at exam)</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/20">
+                            <div class="text-sm">
+                                Projected μ at exam: 
+                                <span class="font-bold text-lg" x-text="status?.exam_projection?.mu_exam?.toFixed(1) || 'N/A'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Statistics -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <h4 class="text-sm font-semibold mb-3 opacity-90">Task Statistics</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Total Tasks:</span>
+                                <span class="font-bold" x-text="status?.task_statistics?.total_tasks || 0"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Mastered (≥80%):</span>
+                                <span class="font-bold" x-text="status?.task_statistics?.mastered_tasks || 0"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Avg Mastery:</span>
+                                <span class="font-bold" x-text="((status?.task_statistics?.avg_mastery || 0) * 100).toFixed(1) + '%'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Due for Review:</span>
+                                <span class="font-bold" x-text="status?.task_statistics?.tasks_due_for_review || 0"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Daily Plan Preview Card -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="material-icons mr-2 text-blue-600">today</i>
+                        Today's AI Plan
+                    </h3>
+                    <button @click="refreshPlan()" 
+                            class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center">
+                        <i class="material-icons text-sm mr-1">refresh</i>
+                        Refresh
+                    </button>
+                </div>
+
+                <div x-show="plan" class="space-y-4">
+                    <!-- Time Allocation -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">Time Allocation</h4>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div class="text-2xl font-bold text-gray-900" x-text="plan?.summary?.total_hours?.toFixed(1) || '0.0'"></div>
+                                <div class="text-xs text-gray-600">Total Hours</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-green-600" x-text="plan?.summary?.hours_new?.toFixed(1) || '0.0'"></div>
+                                <div class="text-xs text-gray-600">New Learning</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-orange-600" x-text="plan?.summary?.hours_revision?.toFixed(1) || '0.0'"></div>
+                                <div class="text-xs text-gray-600">Revision</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projected Gains -->
+                    <div class="bg-yellow-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                            <i class="material-icons text-sm mr-1 text-yellow-600">trending_up</i>
+                            Projected Gains Today
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Expected Marks:</span>
+                                <span class="font-bold text-gray-900">
+                                    <span x-text="plan?.summary?.projected_gains?.mu_before?.toFixed(1) || '0.0'"></span>
+                                    →
+                                    <span class="text-green-600" x-text="plan?.summary?.projected_gains?.mu_after?.toFixed(1) || '0.0'"></span>
+                                    <span class="text-green-600 ml-1" x-text="'(+' + (plan?.summary?.projected_gains?.delta_mu?.toFixed(1) || '0.0') + ')'"></span>
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">P(clear):</span>
+                                <span class="font-bold text-gray-900">
+                                    <span x-text="((plan?.summary?.projected_gains?.p_clear_before || 0) * 100).toFixed(1) + '%'"></span>
+                                    →
+                                    <span class="text-green-600" x-text="((plan?.summary?.projected_gains?.p_clear_after || 0) * 100).toFixed(1) + '%'"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top New Tasks -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <i class="material-icons text-sm mr-1 text-green-600">school</i>
+                            Top New Learning (<span x-text="plan?.new_tasks?.slice(0, 6).length || 0"></span>)
+                        </h4>
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            <template x-for="(task, index) in (plan?.new_tasks || []).slice(0, 6)" :key="index">
+                                <div class="bg-gray-50 rounded-lg p-3 text-sm">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900" x-text="task.task_name"></div>
+                                            <div class="text-xs text-gray-600" x-text="task.subject_name + ' • ' + (task.topic_name || 'No topic')"></div>
+                                        </div>
+                                        <span x-show="task.derived" 
+                                              class="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex-shrink-0"
+                                              title="Virtual task - no user task created yet">
+                                            Virtual
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-600">
+                                        <span>
+                                            <i class="material-icons text-xs">schedule</i>
+                                            <span x-text="(task.allocated_hours * 60).toFixed(0) + ' min'"></span>
+                                        </span>
+                                        <span>
+                                            Mastery: 
+                                            <span x-text="(task.mastery_before * 100).toFixed(0) + '%'"></span>
+                                            →
+                                            <span class="text-green-600 font-semibold" x-text="(task.mastery_after * 100).toFixed(0) + '%'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Top Revision Tasks -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <i class="material-icons text-sm mr-1 text-orange-600">history</i>
+                            Revision Due (<span x-text="plan?.revision_tasks?.slice(0, 6).length || 0"></span>)
+                        </h4>
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            <template x-for="(task, index) in (plan?.revision_tasks || []).slice(0, 6)" :key="index">
+                                <div class="bg-orange-50 rounded-lg p-3 text-sm">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900" x-text="task.task_name"></div>
+                                            <div class="text-xs text-gray-600" x-text="task.subject_name + ' • ' + (task.topic_name || 'No topic')"></div>
+                                        </div>
+                                        <span x-show="task.derived" 
+                                              class="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex-shrink-0"
+                                              title="Virtual task">
+                                            Virtual
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-600">
+                                        <span>
+                                            <i class="material-icons text-xs">schedule</i>
+                                            <span x-text="(task.allocated_hours * 60).toFixed(0) + ' min'"></span>
+                                        </span>
+                                        <span>
+                                            Last: <span x-text="task.days_since_last + 'd ago'"></span>
+                                        </span>
+                                        <span>
+                                            <span x-text="(task.mastery_before * 100).toFixed(0) + '%'"></span>
+                                            →
+                                            <span class="text-green-600 font-semibold" x-text="(task.mastery_after * 100).toFixed(0) + '%'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Apply Plan Button -->
+                    <div class="pt-4 border-t border-gray-200" x-data="{ applying: false }">
+                        {% if write_enabled %}
+                        <!-- Stage 4: Apply Plan Enabled -->
+                        <button @click="applyPlan()" 
+                                :disabled="applying || !plan"
+                                :class="applying || !plan ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg'"
+                                class="w-full px-4 py-3 font-semibold rounded-lg flex items-center justify-center transition-all">
+                            <template x-if="!applying">
+                                <i class="material-icons mr-2">check_circle</i>
+                            </template>
+                            <template x-if="applying">
+                                <i class="material-icons mr-2 animate-spin">refresh</i>
+                            </template>
+                            <span x-text="applying ? 'Applying Plan...' : 'Apply Plan to Tasks'"></span>
+                        </button>
+                        <p class="mt-2 text-xs text-center text-gray-600">
+                            ⚠️ This will create/update tasks and modify mastery values
+                        </p>
+                        {% else %}
+                        <!-- Stage 3: Preview Mode (Read-Only) -->
+                        <button disabled
+                                class="w-full px-4 py-3 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center"
+                                title="Enable writes with PREDICTION_ENABLED=on">
+                            <i class="material-icons mr-2">lock</i>
+                            Apply Plan (Write Mode Disabled)
+                        </button>
+                        <p class="mt-2 text-xs text-center text-gray-500">
+                            ✅ READ-ONLY PREVIEW • Set PREDICTION_ENABLED=on to enable writes
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function predictionDashboard() {
+    return {
+        loading: true,
+        error: false,
+        errorMessage: '',
+        goals: [],
+        selectedGoalId: null,
+        hasActiveGoal: false,
+        status: null,
+        plan: null,
+        
+        async initPrediction() {
+            try:
+                // Get active goals from server-side variable
+                {% if active_goals %}
+                this.goals = {{ active_goals | tojson }};
+                this.hasActiveGoal = this.goals.length > 0;
+                
+                if (this.hasActiveGoal) {
+                    this.selectedGoalId = this.goals[0].goal_id;
+                    await this.loadPredictions();
+                }
+                {% else %}
+                this.hasActiveGoal = false;
+                {% endif %}
+                
+                this.loading = false;
+            } catch (err) {
+                console.error('Prediction init error:', err);
+                this.error = true;
+                this.errorMessage = 'Failed to initialize predictions: ' + err.message;
+                this.loading = false;
+            }
+        },
+        
+        async loadPredictions() {
+            if (!this.selectedGoalId) return;
+            
+            try {
+                // Load status
+                const statusResponse = await fetch(`/api/predict/status?goal_id=${this.selectedGoalId}`);
+                if (!statusResponse.ok) {
+                    throw new Error(`Status API returned ${statusResponse.status}`);
+                }
+                this.status = await statusResponse.json();
+                
+                // Load plan
+                await this.refreshPlan();
+                
+            } catch (err) {
+                console.error('Error loading predictions:', err);
+                this.error = true;
+                this.errorMessage = err.message;
+            }
+        },
+        
+        async refreshPlan() {
+            if (!this.selectedGoalId) return;
+            
+            try {
+                const planResponse = await fetch('/api/predict/plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        goal_id: this.selectedGoalId,
+                        daily_hours: 6.0,
+                        split_new: 0.6
+                    })
+                });
+                
+                if (!planResponse.ok) {
+                    throw new Error(`Plan API returned ${planResponse.status}`);
+                }
+                this.plan = await planResponse.json();
+                
+            } catch (err) {
+                console.error('Error refreshing plan:', err);
+                this.error = true;
+                this.errorMessage = 'Failed to generate plan: ' + err.message;
+            }
+        },
+        
+        async applyPlan() {
+            if (!this.plan || !this.selectedGoalId) {
+                alert('No plan to apply');
+                return;
+            }
+            
+            // Confirm action
+            const confirmed = confirm(
+                `Apply plan with ${this.plan.new_tasks.length} new tasks and ${this.plan.revision_tasks.length} revision tasks?\n\n` +
+                `This will:\n` +
+                `- Create/update tasks\n` +
+                `- Modify mastery values\n` +
+                `- Update study history\n\n` +
+                `Continue?`
+            );
+            
+            if (!confirmed) return;
+            
+            this.applying = true;
+            
+            try {
+                // Generate idempotency key
+                const idempotencyKey = `${this.selectedGoalId}-${new Date().toISOString().split('T')[0]}-${Date.now()}`;
+                
+                // Prepare tasks for apply-plan endpoint
+                const tasks = [];
+                
+                // Add new learning tasks
+                for (const task of this.plan.new_tasks) {
+                    tasks.push({
+                        task_id: task.task_id || null,
+                        subject_id: task.subject_id,
+                        topic_id: task.topic_id,
+                        task_name: task.task_name,
+                        mode: 'learn',
+                        alloc_hours: task.allocated_hours,
+                        expected_mastery_gain: task.mastery_after - task.mastery_before
+                    });
+                }
+                
+                // Add revision tasks
+                for (const task of this.plan.revision_tasks) {
+                    tasks.push({
+                        task_id: task.task_id || null,
+                        subject_id: task.subject_id,
+                        topic_id: task.topic_id,
+                        task_name: task.task_name,
+                        mode: 'revise',
+                        alloc_hours: task.allocated_hours,
+                        expected_mastery_gain: task.mastery_after - task.mastery_before
+                    });
+                }
+                
+                // Call apply-plan endpoint
+                const response = await fetch('/api/predict/apply-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        idempotency_key: idempotencyKey,
+                        goal_id: this.selectedGoalId,
+                        plan_date: new Date().toISOString().split('T')[0],
+                        tasks: tasks
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `Apply plan failed: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show success message
+                alert(
+                    `✅ Plan Applied Successfully!\n\n` +
+                    `Created: ${result.created_tasks} tasks\n` +
+                    `Updated: ${result.updated_tasks} tasks\n\n` +
+                    `Gains:\n` +
+                    `μ: ${result.snapshot.mu_before} → ${result.snapshot.mu_after} (+${result.snapshot.delta_mu_day})\n` +
+                    `P(clear): ${(result.snapshot.p_clear_before * 100).toFixed(1)}% → ${(result.snapshot.p_clear_after * 100).toFixed(1)}%`
+                );
+                
+                // Reload predictions to reflect changes
+                await this.loadPredictions();
+                
+            } catch (err) {
+                console.error('Error applying plan:', err);
+                alert('❌ Failed to apply plan: ' + err.message);
+            } finally {
+                this.applying = false;
+            }
+        }
+    }
+}
+</script>
+{% endif %}

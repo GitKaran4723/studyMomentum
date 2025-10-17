@@ -55,6 +55,9 @@ class Subject(db.Model):
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=ist_now)
     
+    # Stage 1: Prediction field (auto-equal weights, user-editable)
+    subject_weight = db.Column(db.Float)  # Should sum to 1.0 per goal
+    
     # Relationships
     goal = db.relationship('Goal', backref=db.backref('subjects', lazy='dynamic', cascade='all, delete-orphan'))
     topics = db.relationship('Topic', backref='subject', lazy='dynamic', cascade='all, delete-orphan')
@@ -104,6 +107,9 @@ class Topic(db.Model):
     suggested_source = db.Column(db.Text)
     doc_link = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=ist_now)
+    
+    # Stage 1: Prediction field (hint for task weight distribution)
+    topic_weight_hint = db.Column(db.Float)  # Optional weight hint for this topic
     
     __table_args__ = (
         CheckConstraint('default_priority >= 1 AND default_priority <= 5'),
@@ -161,6 +167,40 @@ class Goal(db.Model):
     reward = db.Column(db.Text)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=ist_now)
+    
+    # Stage 1: Prediction fields (not used until PREDICTION_ENABLED=true)
+    threshold_marks = db.Column(db.Float)  # e.g., 120 for UPSC Prelims
+    exam_date = db.Column(db.Date)  # Exam date for probability calculations
+    daily_hours_default = db.Column(db.Float, default=6.0)  # Default daily study hours
+    split_new_default = db.Column(db.Float, default=0.6)  # 60% new, 40% revision
+    delta_decay = db.Column(db.Float, default=0.7)  # Decay factor for mastery
+    
+    # Stage 5: Subject weight overrides (JSON: {subject_id: weight})
+    subject_weights = db.Column(db.Text)  # JSON string of custom weights
+    
+    def get_subject_weights(self):
+        """Parse subject_weights JSON or return None"""
+        if not self.subject_weights:
+            return None
+        import json
+        try:
+            return json.loads(self.subject_weights)
+        except (json.JSONDecodeError, TypeError):
+            return None
+    
+    def set_subject_weights(self, weights_dict):
+        """Set subject weights from dictionary and normalize to 100%"""
+        import json
+        if weights_dict:
+            # Normalize to sum = 1.0
+            total = sum(weights_dict.values())
+            if total > 0:
+                normalized = {k: v/total for k, v in weights_dict.items()}
+                self.subject_weights = json.dumps(normalized)
+            else:
+                self.subject_weights = None
+        else:
+            self.subject_weights = None
     
     # Computed properties for compatibility
     @property
@@ -235,6 +275,24 @@ class Task(db.Model):
     ugc_related = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=ist_now)
+    
+    # Stage 1: Prediction fields (mastery tracking & spaced repetition)
+    task_type = db.Column(db.String(10), default='learn')  # 'learn', 'revise', 'test'
+    concept_weight = db.Column(db.Float)  # Derived from subject_weight
+    t_est_hours = db.Column(db.Float, default=4.0)  # Estimated hours to exam-ready
+    mastery = db.Column(db.Float, default=0.0)  # 0.0 to 1.0 scale
+    lambda_forgetting = db.Column(db.Float, default=0.04)  # Per-day decay rate
+    eta_learn = db.Column(db.Float, default=0.8)  # Learning efficiency
+    rho_revise = db.Column(db.Float, default=0.35)  # Revision efficiency
+    last_studied_at = db.Column(db.Date)  # Last study/revision date
+    spaced_stage = db.Column(db.SmallInteger, default=0)  # Index into [1,3,7,14,30] days
+    alpha = db.Column(db.Float)  # Beta distribution prior (for Bayesian updates)
+    beta = db.Column(db.Float)  # Beta distribution prior
+    last_decay_date = db.Column(db.Date)  # For idempotent decay tracking
+    
+    # Stage 5: Virtual task retirement
+    retired_at = db.Column(db.DateTime)  # When virtual task was retired
+    derived = db.Column(db.Boolean, default=True)  # False if user manually edited weights
     
     __table_args__ = (
         CheckConstraint('priority >= 1 AND priority <= 5'),
@@ -378,5 +436,42 @@ class DailySnapshot(db.Model):
     total_duration_min = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=ist_now)
     
+    # Stage 1: Prediction metrics (for probability tracking)
+    mu = db.Column(db.Float)  # Expected marks rollup
+    sigma2 = db.Column(db.Float)  # Variance
+    p_clear_today = db.Column(db.Float)  # Probability of clearing today
+    delta_mu_day = db.Column(db.Float)  # Daily gain in marks
+    mu_exam = db.Column(db.Float)  # Projected marks at exam date
+    p_clear_exam = db.Column(db.Float)  # Probability of clearing at exam
+    hours_planned = db.Column(db.Float)  # Planned study hours
+    hours_actual = db.Column(db.Float)  # Actual study hours
+    activity_score = db.Column(db.Float)  # Existing task_score sum
+    learning_gain_marks = db.Column(db.Float)  # Δμ from learning
+    
+    # Stage 5: Caching support
+    cache_key = db.Column(db.String(64))  # For 5-minute plan caching
+    
     def __repr__(self):
         return f'<DailySnapshot {self.snapshot_date}>'
+
+
+class IdempotencyLog(db.Model):
+    """Track idempotency keys to prevent duplicate writes (Stage 4)"""
+    __tablename__ = 'idempotency_logs'
+    
+    log_id = db.Column(db.Integer, primary_key=True)
+    idempotency_key = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goals.goal_id'), nullable=False)
+    operation_type = db.Column(db.String(50), nullable=False)  # 'apply_plan', 'quiz', etc.
+    operation_date = db.Column(db.Date, nullable=False)
+    request_hash = db.Column(db.String(64), nullable=False)  # SHA256 of request payload
+    response_data = db.Column(db.Text)  # JSON response for idempotent replay
+    created_at = db.Column(db.DateTime, default=ist_now)
+    
+    __table_args__ = (
+        db.Index('idx_idempotency_user_goal_date', 'user_id', 'goal_id', 'operation_date'),
+    )
+    
+    def __repr__(self):
+        return f'<IdempotencyLog {self.idempotency_key} {self.operation_type}>'

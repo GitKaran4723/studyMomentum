@@ -68,6 +68,10 @@ def create_app(config_name=None):
     from app.admin import bp as admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
+    # Stage 2: Prediction API (read-only, feature-gated)
+    from app.predict import bp as predict_bp
+    app.register_blueprint(predict_bp, url_prefix='/api/predict')
+    
     # Create database tables
     with app.app_context():
         db.create_all()

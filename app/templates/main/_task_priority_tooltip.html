@@ -1,0 +1,113 @@
+<!-- Stage 5: "Why this task?" Tooltip Component -->
+<!-- Add to task cards in prediction UI or dashboard -->
+<div class="inline-block" x-data="{ showTooltip: false }">
+    <button 
+        type="button"
+        @mouseenter="showTooltip = true"
+        @mouseleave="showTooltip = false"
+        class="text-gray-400 hover:text-indigo-600 transition">
+        <i class="material-icons text-sm">help_outline</i>
+    </button>
+    
+    <!-- Tooltip -->
+    <div 
+        x-show="showTooltip"
+        x-transition
+        class="absolute z-50 bg-gray-900 text-white text-xs rounded-lg p-4 shadow-xl w-72 -mt-2 ml-6"
+        style="display: none;">
+        
+        <div class="font-bold text-sm mb-2 flex items-center gap-2">
+            <i class="material-icons text-base">psychology</i>
+            Why this task?
+        </div>
+        
+        {% if task.task_type == 'learn' %}
+        <!-- SPH Breakdown for New Learning -->
+        <div class="space-y-2">
+            <p class="text-gray-300 mb-2">Study Payoff Heuristic (SPH):</p>
+            
+            <div class="bg-white/10 rounded p-2 space-y-1">
+                <div class="flex justify-between">
+                    <span>Current Mastery:</span>
+                    <span class="font-semibold">{{ "%.2f"|format(task.mastery or 0) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Concept Weight:</span>
+                    <span class="font-semibold">{{ "%.3f"|format(task.concept_weight or 0) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Learning Rate (η):</span>
+                    <span class="font-semibold">{{ task.eta_learn or 0.8 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Est. Hours:</span>
+                    <span class="font-semibold">{{ task.t_est_hours or 4.0 }}h</span>
+                </div>
+            </div>
+            
+            <div class="bg-indigo-500/30 rounded p-2 mt-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">SPH Priority:</span>
+                    <span class="text-lg font-bold">{{ "%.3f"|format((task.concept_weight or 0) * (task.eta_learn or 0.8) * (1 - (task.mastery or 0)) / (task.t_est_hours or 4.0)) }}</span>
+                </div>
+                <p class="text-xs text-gray-300 mt-1">
+                    = (weight × η × (1-μ)) / hours
+                </p>
+            </div>
+            
+            <p class="text-gray-400 text-xs mt-2">
+                Higher SPH = more marks gain per hour of study
+            </p>
+        </div>
+        {% else %}
+        <!-- RPF Breakdown for Revision -->
+        <div class="space-y-2">
+            <p class="text-gray-300 mb-2">Revision Priority Factor (RPF):</p>
+            
+            <div class="bg-white/10 rounded p-2 space-y-1">
+                <div class="flex justify-between">
+                    <span>Current Mastery:</span>
+                    <span class="font-semibold">{{ "%.2f"|format(task.mastery or 0) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Concept Weight:</span>
+                    <span class="font-semibold">{{ "%.3f"|format(task.concept_weight or 0) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Revision Rate (ρ):</span>
+                    <span class="font-semibold">{{ task.rho_revise or 0.35 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Days Since Study:</span>
+                    <span class="font-semibold">{{ task.days_since_last or 0 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Decay Rate (λ):</span>
+                    <span class="font-semibold">{{ task.lambda_forgetting or 0.04 }}/day</span>
+                </div>
+            </div>
+            
+            <div class="bg-purple-500/30 rounded p-2 mt-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">RPF Priority:</span>
+                    <span class="text-lg font-bold">{{ "%.3f"|format((task.concept_weight or 0) * (task.rho_revise or 0.35) * (1 - (task.mastery or 0))) }}</span>
+                </div>
+                <p class="text-xs text-gray-300 mt-1">
+                    = weight × ρ × (1-μ_decayed)
+                </p>
+            </div>
+            
+            <p class="text-gray-400 text-xs mt-2">
+                Higher RPF = more urgently needs revision
+            </p>
+        </div>
+        {% endif %}
+        
+        <div class="mt-3 pt-2 border-t border-white/20">
+            <p class="text-gray-400 text-xs">
+                <strong>Subject:</strong> {{ task.topic.subject.name if task.topic else 'Unknown' }}<br>
+                <strong>Topic:</strong> {{ task.topic.topic_name if task.topic else 'Unknown' }}
+            </p>
+        </div>
+    </div>
+</div>

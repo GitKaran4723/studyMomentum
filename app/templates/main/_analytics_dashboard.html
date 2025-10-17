@@ -1,0 +1,180 @@
+<!-- Stage 5: Analytics & Trends Dashboard -->
+{% if prediction_enabled and goal %}
+<div x-data="analyticsData()" x-init="loadTrends()" class="space-y-6">
+    <!-- Trends Chart: P(clear) and μ over time -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <i class="material-icons text-blue-600 text-2xl">trending_up</i>
+                <div>
+                    <h3 class="font-bold text-gray-900">Exam Readiness Trend</h3>
+                    <p class="text-xs text-gray-600">Track your probability and expected marks over time</p>
+                </div>
+            </div>
+            <select @change="loadTrends()" class="px-3 py-2 rounded-lg border border-gray-300 text-sm">
+                <option value="7">Last 7 Days</option>
+                <option value="14">Last 14 Days</option>
+                <option value="30" selected>Last 30 Days</option>
+            </select>
+        </div>
+
+        <!-- Simple Chart (using divs as bars - can be replaced with Chart.js) -->
+        <div class="space-y-4">
+            <!-- P(clear exam) trend -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-gray-700">Probability of Clearing Exam</span>
+                    <span x-text="latestPClear + '%'" class="text-lg font-bold text-green-600"></span>
+                </div>
+                <div class="h-12 bg-gray-100 rounded-lg overflow-hidden">
+                    <template x-for="(day, index) in trendsData" :key="index">
+                        <div class="inline-block h-full bg-gradient-to-t from-green-500 to-green-400" 
+                             :style="`width: ${100/trendsData.length}%; opacity: ${0.3 + (index/trendsData.length)*0.7}`"
+                             :title="`${day.date}: ${day.p_clear}%`">
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- μ (expected marks) trend -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-gray-700">Expected Marks (μ)</span>
+                    <span x-text="latestMu" class="text-lg font-bold text-blue-600"></span>
+                </div>
+                <div class="h-12 bg-gray-100 rounded-lg overflow-hidden">
+                    <template x-for="(day, index) in trendsData" :key="index">
+                        <div class="inline-block h-full bg-gradient-to-t from-blue-500 to-blue-400" 
+                             :style="`width: ${100/trendsData.length}%; height: ${(day.mu/threshold)*100}%`"
+                             :title="`${day.date}: μ=${day.mu}`">
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-3 gap-4">
+            <div class="bg-green-50 rounded-lg p-3 text-center">
+                <p class="text-xs text-gray-600">Daily Gain</p>
+                <p x-text="dailyGain" class="text-xl font-bold text-green-600"></p>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-3 text-center">
+                <p class="text-xs text-gray-600">Days to Exam</p>
+                <p x-text="daysToExam" class="text-xl font-bold text-blue-600"></p>
+            </div>
+            <div class="bg-purple-50 rounded-lg p-3 text-center">
+                <p class="text-xs text-gray-600">Efficiency</p>
+                <p x-text="efficiency + '%'" class="text-xl font-bold text-purple-600"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Contribution Bars -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <i class="material-icons text-purple-600 text-2xl">bar_chart</i>
+            <div>
+                <h3 class="font-bold text-gray-900">Subject Contributions</h3>
+                <p class="text-xs text-gray-600">How each subject impacts your overall score</p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <template x-for="subject in subjectContributions" :key="subject.id">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-semibold text-gray-700" x-text="subject.name"></span>
+                        <span class="text-sm text-gray-600">
+                            <span x-text="subject.contribution" class="font-bold"></span> marks
+                            (<span x-text="subject.percentage"></span>%)
+                        </span>
+                    </div>
+                    <div class="h-6 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                             :style="`width: ${subject.percentage}%`">
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- What Boosts Your Odds Next? -->
+    <div class="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <i class="material-icons text-amber-600 text-2xl">lightbulb</i>
+            <div>
+                <h3 class="font-bold text-gray-900">What Boosts Your Odds Next?</h3>
+                <p class="text-xs text-gray-600">Highest marginal Δμ tasks (best time investment)</p>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <template x-for="(task, index) in topMarginalTasks" :key="task.id">
+                <div class="bg-white rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 flex items-center justify-center bg-amber-100 text-amber-700 rounded-full text-xs font-bold" 
+                              x-text="index + 1"></span>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm" x-text="task.name"></p>
+                            <p class="text-xs text-gray-500">
+                                <span x-text="task.subject"></span> • 
+                                <span x-text="task.estimated_hours"></span>h
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-amber-600">+<span x-text="task.delta_mu"></span> marks</p>
+                        <p class="text-xs text-gray-500"><span x-text="task.efficiency"></span> marks/hour</p>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="mt-4 bg-white/50 rounded-lg p-3 text-xs text-gray-700">
+            <p><strong>Pro tip:</strong> Spending +30 minutes on these tasks gives you the best ROI for improving your exam probability.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function analyticsData() {
+    return {
+        trendsData: [],
+        subjectContributions: [],
+        topMarginalTasks: [],
+        latestPClear: 0,
+        latestMu: 0,
+        dailyGain: 0,
+        daysToExam: 0,
+        efficiency: 0,
+        threshold: {{ goal.threshold_marks or 100 }},
+        
+        async loadTrends() {
+            try {
+                const response = await fetch(`/api/predict/analytics?goal_id={{ goal.goal_id }}&days=30`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.trendsData = data.trends || [];
+                    this.subjectContributions = data.subject_contributions || [];
+                    this.topMarginalTasks = data.top_marginal_tasks || [];
+                    
+                    if (this.trendsData.length > 0) {
+                        const latest = this.trendsData[this.trendsData.length - 1];
+                        this.latestPClear = latest.p_clear || 0;
+                        this.latestMu = latest.mu || 0;
+                        this.dailyGain = latest.delta_mu_day || 0;
+                    }
+                    
+                    this.daysToExam = data.days_to_exam || 0;
+                    this.efficiency = data.efficiency || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+    };
+}
+</script>
+{% endif %}

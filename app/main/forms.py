@@ -39,6 +39,13 @@ class GoalForm(FlaskForm):
     status = SelectField('Status', choices=[
         ('active', 'Active'), ('completed', 'Completed'), ('paused', 'Paused')
     ], default='active')
+    
+    # Stage 3: Prediction fields
+    exam_date = DateField('Exam Date', validators=[Optional()])
+    threshold_marks = FloatField('Passing Threshold (Marks)', validators=[Optional(), NumberRange(min=0)])
+    daily_hours_default = FloatField('Default Daily Hours', validators=[Optional(), NumberRange(min=0.5, max=24)], default=6.0)
+    split_new_default = FloatField('New Learning Split (0-1)', validators=[Optional(), NumberRange(min=0, max=1)], default=0.6)
+    
     submit = SubmitField('Save Goal')
 
 class TaskForm(FlaskForm):

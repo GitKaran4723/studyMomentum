@@ -1,0 +1,109 @@
+{% if prediction_enabled and goal %}
+<!-- Subject Weight Editor (Stage 5) -->
+<div x-data="subjectWeightEditor()" class="space-y-4">
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <i class="material-icons text-indigo-600 text-2xl">pie_chart</i>
+                <div>
+                    <h3 class="font-bold text-gray-900">Subject Importance Weights</h3>
+                    <p class="text-xs text-gray-600">Adjust how each subject contributes to your exam score</p>
+                </div>
+            </div>
+            <button 
+                type="button"
+                @click="normalizeWeights()"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 text-sm font-semibold">
+                <i class="material-icons text-sm">balance</i>
+                Normalize to 100%
+            </button>
+        </div>
+
+        <!-- Weight Sliders -->
+        <div class="space-y-4">
+            {% for subject in goal.subjects %}
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-semibold text-gray-800">{{ subject.name }}</label>
+                    <div class="flex items-center gap-2">
+                        <span x-text="weights[{{ subject.subject_id }}] || 0" class="text-lg font-bold text-indigo-600"></span>
+                        <span class="text-sm text-gray-500">%</span>
+                    </div>
+                </div>
+                
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="1"
+                    x-model.number="weights[{{ subject.subject_id }}]"
+                    @input="updateTotal()"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                
+                <input 
+                    type="hidden" 
+                    name="subject_weight_{{ subject.subject_id }}" 
+                    :value="weights[{{ subject.subject_id }}] / 100">
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Total Display -->
+        <div class="mt-4 p-4 rounded-lg" 
+             :class="total === 100 ? 'bg-green-50 border-2 border-green-200' : 'bg-yellow-50 border-2 border-yellow-200'">
+            <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-700">Total Weight:</span>
+                <div class="flex items-center gap-2">
+                    <span x-text="total" class="text-2xl font-bold" :class="total === 100 ? 'text-green-600' : 'text-yellow-600'"></span>
+                    <span class="text-sm text-gray-500">%</span>
+                    <i class="material-icons text-xl" :class="total === 100 ? 'text-green-600' : 'text-yellow-600'" x-text="total === 100 ? 'check_circle' : 'warning'"></i>
+                </div>
+            </div>
+            <p x-show="total !== 100" class="text-xs text-yellow-700 mt-2">
+                Click "Normalize to 100%" to automatically balance weights
+            </p>
+        </div>
+
+        <div class="mt-4 bg-white/50 rounded-lg p-3 text-xs text-gray-600">
+            <p><strong>How weights work:</strong> Higher weights mean the subject contributes more to your overall exam score. Weights must sum to 100% for accurate probability calculations.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function subjectWeightEditor() {
+    return {
+        weights: {
+            {% for subject in goal.subjects %}
+            {{ subject.subject_id }}: {{ (subject.subject_weight * 100) if subject.subject_weight else (100 / goal.subjects.count()) }},
+            {% endfor %}
+        },
+        total: 0,
+        
+        init() {
+            this.updateTotal();
+        },
+        
+        updateTotal() {
+            this.total = Math.round(Object.values(this.weights).reduce((sum, w) => sum + (w || 0), 0));
+        },
+        
+        normalizeWeights() {
+            const total = Object.values(this.weights).reduce((sum, w) => sum + (w || 0), 0);
+            if (total > 0) {
+                for (let id in this.weights) {
+                    this.weights[id] = Math.round((this.weights[id] / total) * 100);
+                }
+                // Fix rounding errors
+                const newTotal = Object.values(this.weights).reduce((sum, w) => sum + w, 0);
+                if (newTotal !== 100) {
+                    const firstId = Object.keys(this.weights)[0];
+                    this.weights[firstId] += (100 - newTotal);
+                }
+                this.updateTotal();
+            }
+        }
+    };
+}
+</script>
+{% endif %}
